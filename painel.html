@@ -85,10 +85,6 @@
     h3 {
       margin-top: 0;
     }
-
-    ul {
-      padding-left: 20px;
-    }
   </style>
 </head>
 <body>
@@ -117,7 +113,7 @@
     <section id="tarefas">
       <div class="card">
         <h3>Tarefas Disponíveis</h3>
-        <ul id="taskList">Carregando...</ul>
+        <ul id="taskList"></ul>
       </div>
     </section>
 
@@ -144,14 +140,13 @@
       <div class="card">
         <h3>Indicações</h3>
         <p>Você indicou <span id="referralCount">0</span> usuários.</p>
-        <ul id="referralsList"></ul>
       </div>
     </section>
 
     <section id="notificacoes">
       <div class="card">
         <h3>Notificações</h3>
-        <ul id="notificacoesList">Carregando...</ul>
+        <div id="notificacoesList">Carregando...</div>
       </div>
     </section>
 
@@ -165,7 +160,7 @@
     <section id="suporte">
       <div class="card">
         <h3>Tickets de Suporte</h3>
-        <ul id="suporteList">Carregando...</ul>
+        <div id="suporteList">Carregando...</div>
       </div>
     </section>
   </main>
@@ -185,7 +180,8 @@
       getDocs,
       query,
       where,
-      addDoc
+      addDoc,
+      orderBy
     } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -209,166 +205,190 @@
 
     const logout = () => {
       signOut(auth).then(() => {
-        window.location.href = "login.html"; // ajuste para o seu arquivo de login real
+        window.location.href = "login.html";
       });
     };
 
-    // Função para carregar tarefas aprovadas
-    async function carregarTarefas() {
+    const formatDate = (timestamp) => {
+      if (!timestamp) return '';
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return date.toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "short" });
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      const uid = user.uid;
+
+      // Carregar perfil do usuário
+      const userDoc = await getDoc(doc(db, "users", uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        document.getElementById("userName").innerText = data.nome || "Sem nome";
+        document.getElementById("userSaldo").innerText = data.saldo?.toFixed(2) || "0.00";
+        document.getElementById("statusConta").innerText = data.status || "ativo";
+        document.getElementById("referralCount").innerText = data.indicacoes || 0;
+      } else {
+        alert("Usuário não encontrado.");
+        logout();
+        return;
+      }
+
+      // Carregar tarefas aprovadas
       const tasksSnap = await getDocs(query(collection(db, "tasks"), where("approved", "==", true)));
       const taskList = document.getElementById("taskList");
       taskList.innerHTML = "";
-      if (tasksSnap.empty) {
-        taskList.innerHTML = "<li>Nenhuma tarefa disponível.</li>";
-        return;
-      }
       tasksSnap.forEach(doc => {
         const task = doc.data();
         const li = document.createElement("li");
         li.textContent = `${task.titulo} - ${task.valor} MT`;
         taskList.appendChild(li);
       });
-    }
 
-    // Função para carregar pedidos de levantamento do usuário
-    async function carregarLevantamentos(uid) {
-      const levantamentosDiv = document.getElementById("levantamentosList");
-      const q = query(collection(db, "withdrawals"), where("userId", "==", uid));
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        levantamentosDiv.innerText = "Nenhum pedido.";
-        return;
+      // Carregar transações do usuário ordenadas pela data decrescente
+      const transacoesSnap = await getDocs(query(
+        collection(db, "transactions"),
+        where("userId", "==", uid),
+        orderBy("data", "desc")
+      ));
+      const transacoesList = document.getElementById("transacoesList");
+      if (transacoesSnap.empty) {
+        transacoesList.innerText = "Nenhuma transação.";
+      } else {
+        transacoesList.innerHTML = "";
+        transacoesSnap.forEach(doc => {
+          const t = doc.data();
+          const div = document.createElement("div");
+          div.className = "card";
+          div.innerHTML = `
+            <p><strong>Tipo:</strong> ${t.tipo || "Desconhecido"}</p>
+            <p><strong>Valor:</strong> ${t.valor || 0} MT</p>
+            <p><strong>Data:</strong> ${formatDate(t.data)}</p>
+            <p><strong>Status:</strong> ${t.status || "pendente"}</p>
+          `;
+          transacoesList.appendChild(div);
+        });
       }
-      levantamentosDiv.innerHTML = "";
-      snap.forEach(doc => {
-        const data = doc.data();
-        const d = data.data.toDate ? data.data.toDate() : new Date(data.data);
-        const div = document.createElement("div");
-        div.className = "card";
-        div.textContent = `Pedido em ${d.toLocaleDateString()} - Status: ${data.status}`;
-        levantamentosDiv.appendChild(div);
-      });
-    }
 
-    // Função para carregar histórico de transações do usuário
-    async function carregarTransacoes(uid) {
-      const transacoesDiv = document.getElementById("transacoesList");
-      const q = query(collection(db, "transactions"), where("userId", "==", uid));
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        transacoesDiv.innerText = "Nenhuma transação.";
-        return;
+      // Carregar pedidos de levantamento do usuário
+      const levantamentosSnap = await getDocs(query(
+        collection(db, "withdrawals"),
+        where("userId", "==", uid),
+        orderBy("data", "desc")
+      ));
+      const levantamentosList = document.getElementById("levantamentosList");
+      if (levantamentosSnap.empty) {
+        levantamentosList.innerText = "Nenhum pedido.";
+      } else {
+        levantamentosList.innerHTML = "";
+        levantamentosSnap.forEach(doc => {
+          const w = doc.data();
+          const div = document.createElement("div");
+          div.className = "card";
+          div.innerHTML = `
+            <p><strong>Valor:</strong> ${w.valor || "0"} MT</p>
+            <p><strong>Data:</strong> ${formatDate(w.data)}</p>
+            <p><strong>Status:</strong> ${w.status}</p>
+          `;
+          levantamentosList.appendChild(div);
+        });
       }
-      transacoesDiv.innerHTML = "";
-      snap.forEach(doc => {
-        const data = doc.data();
-        const d = data.data.toDate ? data.data.toDate() : new Date(data.data);
-        const div = document.createElement("div");
-        div.className = "card";
-        div.textContent = `${d.toLocaleDateString()} - ${data.tipo || "Transação"}: ${data.valor || 0} MT`;
-        transacoesDiv.appendChild(div);
-      });
-    }
 
-    // Função para carregar notificações do usuário
-    async function carregarNotificacoes(uid) {
-      const notificacoesUl = document.getElementById("notificacoesList");
-      const q = query(collection(db, "notifications"), where("userId", "==", uid));
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        notificacoesUl.innerHTML = "<li>Nenhuma notificação.</li>";
-        return;
+      // Carregar notificações do usuário
+      const notifsSnap = await getDocs(query(
+        collection(db, "notifications"),
+        where("userId", "==", uid),
+        orderBy("data", "desc")
+      ));
+      const notificacoesList = document.getElementById("notificacoesList");
+      if (notifsSnap.empty) {
+        notificacoesList.innerText = "Nenhuma notificação.";
+      } else {
+        notificacoesList.innerHTML = "";
+        notifsSnap.forEach(doc => {
+          const n = doc.data();
+          const div = document.createElement("div");
+          div.className = "card";
+          div.innerHTML = `
+            <p>${n.mensagem || ""}</p>
+            <small>${formatDate(n.data)}</small>
+          `;
+          notificacoesList.appendChild(div);
+        });
       }
-      notificacoesUl.innerHTML = "";
-      snap.forEach(doc => {
-        const data = doc.data();
-        const li = document.createElement("li");
-        li.textContent = data.mensagem || "Sem mensagem";
-        notificacoesUl.appendChild(li);
-      });
-    }
 
-    // Função para carregar tickets de suporte do usuário
-    async function carregarSuporte(uid) {
-      const suporteUl = document.getElementById("suporteList");
-      const q = query(collection(db, "supportTickets"), where("userId", "==", uid));
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        suporteUl.innerHTML = "<li>Nenhum ticket.</li>";
-        return;
+      // Carregar tickets de suporte do usuário
+      const suporteSnap = await getDocs(query(
+        collection(db, "supportTickets"),
+        where("userId", "==", uid),
+        orderBy("data", "desc")
+      ));
+      const suporteList = document.getElementById("suporteList");
+      if (suporteSnap.empty) {
+        suporteList.innerText = "Nenhum ticket.";
+      } else {
+        suporteList.innerHTML = "";
+        suporteSnap.forEach(doc => {
+          const s = doc.data();
+          const div = document.createElement("div");
+          div.className = "card";
+          div.innerHTML = `
+            <p><strong>Assunto:</strong> ${s.assunto || "Sem assunto"}</p>
+            <p>${s.mensagem || ""}</p>
+            <p><strong>Status:</strong> ${s.status || "pendente"}</p>
+            <small>${formatDate(s.data)}</small>
+          `;
+          suporteList.appendChild(div);
+        });
       }
-      suporteUl.innerHTML = "";
-      snap.forEach(doc => {
-        const data = doc.data();
-        const li = document.createElement("li");
-        li.textContent = `[${data.status || "Aberto"}] ${data.assunto || "Sem assunto"}`;
-        suporteUl.appendChild(li);
-      });
-    }
+    });
 
-    // Função para carregar indicações feitas pelo usuário (usuários que têm 'referidoPor' == uid)
-    async function carregarIndicacoes(uid) {
-      const referralsSpan = document.getElementById("referralCount");
-      const referralsList = document.getElementById("referralsList");
-      const q = query(collection(db, "users"), where("referidoPor", "==", uid));
-      const snap = await getDocs(q);
-      referralsSpan.innerText = snap.size;
-      referralsList.innerHTML = "";
-      if (snap.empty) {
-        referralsList.innerHTML = "<li>Nenhuma indicação.</li>";
-        return;
-      }
-      snap.forEach(doc => {
-        const data = doc.data();
-        const li = document.createElement("li");
-        li.textContent = data.nome || "Usuário sem nome";
-        referralsList.appendChild(li);
-      });
-    }
-
-    // Função para levantar saldo (cria pedido de levantamento)
+    // Função para levantar saldo (fazer pedido de levantamento)
     window.levantarSaldo = async () => {
       const user = auth.currentUser;
       if (!user) {
         alert("Por favor, faça login");
         return;
       }
+      const uid = user.uid;
+
+      // Opcional: Pode pedir valor do levantamento
+      let valor = prompt("Digite o valor que deseja levantar (MT):");
+      if (!valor) return alert("Operação cancelada.");
+      valor = parseFloat(valor);
+      if (isNaN(valor) || valor <= 0) return alert("Valor inválido.");
+
+      // Verificar saldo do usuário antes
+      const userDoc = await getDoc(doc(db, "users", uid));
+      if (!userDoc.exists()) {
+        alert("Usuário não encontrado.");
+        return;
+      }
+      const saldoAtual = userDoc.data().saldo || 0;
+      if (valor > saldoAtual) {
+        alert("Saldo insuficiente para esse levantamento.");
+        return;
+      }
+
       try {
+        // Criar pedido de levantamento
         await addDoc(collection(db, "withdrawals"), {
-          userId: user.uid,
+          userId: uid,
+          valor: valor,
           status: "pendente",
           data: new Date()
         });
         alert("Pedido de levantamento enviado com sucesso!");
-        carregarLevantamentos(user.uid); // atualiza lista
+
+        // Opcional: Atualizar saldo local na interface imediatamente
+        document.getElementById("userSaldo").innerText = (saldoAtual - valor).toFixed(2);
+
       } catch (e) {
         alert("Erro ao enviar o pedido: " + e.message);
       }
     };
-
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const uid = user.uid;
-        const userDoc = await getDoc(doc(db, "users", uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          document.getElementById("userName").innerText = data.nome || "Sem nome";
-          document.getElementById("userSaldo").innerText = data.saldo || "0";
-          document.getElementById("statusConta").innerText = data.status || "ativo";
-        }
-
-        await carregarTarefas();
-        await carregarLevantamentos(uid);
-        await carregarTransacoes(uid);
-        await carregarNotificacoes(uid);
-        await carregarSuporte(uid);
-        await carregarIndicacoes(uid);
-
-      } else {
-        window.location.href = "login.html";
-      }
-    });
   </script>
 </body>
 </html>
-
