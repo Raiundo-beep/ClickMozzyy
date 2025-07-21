@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClickMoz - Painel do Usuário</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      height: 100vh;
+      background-color: #fdfce5;
+    }
+
+    nav {
+      width: 220px;
+      background-color: #ffe600;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    nav h2 {
+      margin-top: 0;
+      font-size: 1.3em;
+      color: #333;
+    }
+
+    nav button {
+      background-color: transparent;
+      border: none;
+      text-align: left;
+      font-size: 1em;
+      padding: 10px;
+      cursor: pointer;
+      color: #333;
+      border-radius: 8px;
+    }
+
+    nav button:hover {
+      background-color: #fff9c4;
+    }
+
+    main {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    section {
+      display: none;
+    }
+
+    section.active {
+      display: block;
+    }
+
+    .logout-btn {
+      margin-top: auto;
+      background-color: #ff5252;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      background-color: #e53935;
+    }
+
+    .card {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    h3 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <h2>ClickMoz</h2>
+    <button onclick="showSection('usuario')">Usuário</button>
+    <button onclick="showSection('tarefas')">Tarefas</button>
+    <button onclick="showSection('levantamentos')">Levantamentos</button>
+    <button onclick="showSection('transacoes')">Transações</button>
+    <button onclick="showSection('referrals')">Indicações</button>
+    <button onclick="showSection('notificacoes')">Notificações</button>
+    <button onclick="showSection('status')">Status</button>
+    <button onclick="showSection('suporte')">Suporte</button>
+    <button class="logout-btn" onclick="logout()">Sair</button>
+  </nav>
+
+  <main>
+    <section id="usuario" class="active">
+      <div class="card">
+        <h3>Perfil do Usuário</h3>
+        <p><strong>Nome:</strong> <span id="userName"></span></p>
+        <p><strong>Saldo:</strong> <span id="userSaldo"></span> MT</p>
+      </div>
+    </section>
+
+    <section id="tarefas">
+      <div class="card">
+        <h3>Tarefas Disponíveis</h3>
+        <ul id="taskList"></ul>
+      </div>
+    </section>
+
+    <section id="levantamentos">
+      <div class="card">
+        <h3>Pedidos de Levantamento</h3>
+        <div id="levantamentosList">Carregando...</div>
+      </div>
+    </section>
+
+    <section id="transacoes">
+      <div class="card">
+        <h3>Histórico de Transações</h3>
+        <div id="transacoesList">Carregando...</div>
+      </div>
+    </section>
+
+    <section id="referrals">
+      <div class="card">
+        <h3>Indicações</h3>
+        <p>Você indicou <span id="referralCount">0</span> usuários.</p>
+      </div>
+    </section>
+
+    <section id="notificacoes">
+      <div class="card">
+        <h3>Notificações</h3>
+        <div id="notificacoesList">Carregando...</div>
+      </div>
+    </section>
+
+    <section id="status">
+      <div class="card">
+        <h3>Status da Conta</h3>
+        <p id="statusConta">Carregando...</p>
+      </div>
+    </section>
+
+    <section id="suporte">
+      <div class="card">
+        <h3>Tickets de Suporte</h3>
+        <div id="suporteList">Carregando...</div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      collection,
+      getDocs,
+      query,
+      where
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD70Uto5Z8gAHclBNm9peW7FKd4pR1-sZA",
+      authDomain: "clickmoz-e7e6b.firebaseapp.com",
+      projectId: "clickmoz-e7e6b",
+      storageBucket: "clickmoz-e7e6b.firebasestorage.app",
+      messagingSenderId: "57111705800",
+      appId: "1:57111705800:web:6ff95f2ce510c0c09f8dfd",
+      measurementId: "G-GBLYFL5WNM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getFirestore(app);
+
+    const showSection = (id) => {
+      document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    };
+
+    const logout = () => {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const uid = user.uid;
+        const userDoc = await getDoc(doc(db, "users", uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          document.getElementById("userName").innerText = data.nome || "Sem nome";
+          document.getElementById("userSaldo").innerText = data.saldo || "0";
+          document.getElementById("statusConta").innerText = data.status || "ativo";
+          document.getElementById("referralCount").innerText = data.indicacoes || 0;
+        }
+
+        // Carregar tarefas
+        const tasksSnap = await getDocs(query(collection(db, "tasks"), where("approved", "==", true)));
+        const taskList = document.getElementById("taskList");
+        taskList.innerHTML = "";
+        tasksSnap.forEach(doc => {
+          const task = doc.data();
+          const li = document.createElement("li");
+          li.textContent = `${task.titulo} - ${task.valor} MT`;
+          taskList.appendChild(li);
+        });
+
+        // Notificações, suporte, transações, levantamentos podem ser simuladas ou implementadas com as coleções reais.
+        document.getElementById("notificacoesList").innerText = "Nenhuma notificação.";
+        document.getElementById("suporteList").innerText = "Nenhum ticket.";
+        document.getElementById("transacoesList").innerText = "Nenhuma transação.";
+        document.getElementById("levantamentosList").innerText = "Nenhum pedido.";
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+</body>
+</html>
