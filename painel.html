@@ -120,6 +120,11 @@
     <section id="levantamentos">
       <div class="card">
         <h3>Pedidos de Levantamento</h3>
+        <div class="card">
+          <button style="padding: 12px 20px; background-color: #ffd700; border: none; border-radius: 8px; font-weight: bold;" onclick="levantarSaldo()">
+            💸 Levantar Saldo
+          </button>
+        </div>
         <div id="levantamentosList">Carregando...</div>
       </div>
     </section>
@@ -174,7 +179,8 @@
       collection,
       getDocs,
       query,
-      where
+      where,
+      addDoc
     } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -225,7 +231,6 @@
           taskList.appendChild(li);
         });
 
-        // Notificações, suporte, transações, levantamentos podem ser simuladas ou implementadas com as coleções reais.
         document.getElementById("notificacoesList").innerText = "Nenhuma notificação.";
         document.getElementById("suporteList").innerText = "Nenhum ticket.";
         document.getElementById("transacoesList").innerText = "Nenhuma transação.";
@@ -234,6 +239,27 @@
         window.location.href = "login.html";
       }
     });
+
+    // ✅ Função para levantar saldo
+    window.levantarSaldo = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Por favor, faça login");
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "withdrawals"), {
+          userId: user.uid,
+          status: "pendente",
+          data: new Date()
+        });
+        alert("Pedido de levantamento enviado com sucesso!");
+      } catch (e) {
+        alert("Erro ao enviar o pedido: " + e.message);
+      }
+    };
   </script>
 </body>
 </html>
+
