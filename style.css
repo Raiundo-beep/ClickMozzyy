@@ -1,0 +1,225 @@
+/* Seus estilos CSS atuais aqui... */
+/* Adicione estilos para btn-primary-cta se usar */
+.btn-primary-cta {
+    background-color: #007bff; /* Um azul ou verde que se destaque mais */
+    color: #fff;
+}
+.btn-primary-cta:hover {
+    background-color: #0056b3;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f4f4f4;
+    color: #333;
+}
+header {
+    background-color: #ffcc00;
+    color: #000;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.hero {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: #fff;
+    border-bottom: 2px solid #eee;
+}
+.hero h1 {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+}
+.hero p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+.btn {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    background-color: #ffcc00;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    margin: 0 0.5rem;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    font-size: 1rem;
+}
+.btn:hover {
+    background-color: #e6b800;
+}
+.how-it-works {
+    text-align: center;
+    padding: 2rem;
+    background: #eee;
+}
+.steps-container {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+.step-box {
+    width: 250px;
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.05);
+    text-align: center;
+}
+.step-box i {
+    font-size: 2rem;
+    color: #ffcc00;
+    margin-bottom: 0.5rem;
+}
+.features {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+    padding: 2rem;
+    background: #fafafa;
+}
+.feature-box {
+    width: 250px;
+    background: #fff;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    text-align: center;
+}
+.feature-box i {
+    font-size: 2rem;
+    color: #ffcc00;
+    margin-bottom: 0.5rem;
+}
+footer {
+    background: #222;
+    color: #ccc;
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+}
+footer a {
+    color: #ffcc00;
+    text-decoration: none;
+    margin: 0 0.5rem;
+}
+@media (max-width: 600px) {
+    .features {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* MODAL ESTILOS */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+.modal-content {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    position: relative;
+}
+.modal-header {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    color: #ffcc00;
+    text-align: center;
+}
+.close-btn {
+    position: absolute;
+    top: 12px; right: 15px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+}
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+input[type="text"],
+input[type="password"],
+input[type="tel"] {
+    padding: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="tel"]:focus {
+    outline: none;
+    border-color: #ffcc00;
+    box-shadow: 0 0 8px #ffcc00;
+}
+.error-msg {
+    color: #d9534f;
+    font-size: 0.9rem;
+    margin-top: -0.5rem;
+}
+.submit-btn {
+    background-color: #ffcc00;
+    border: none;
+    padding: 0.8rem;
+    font-weight: bold;
+    color: #000;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background 0.3s ease;
+    position: relative;
+}
+.submit-btn:hover {
+    background-color: #e6b800;
+}
+.submit-btn[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.toggle-link {
+    text-align: center;
+    margin-top: 0.8rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: #ffcc00;
+    text-decoration: underline;
+}
+
+/* Spinner simples */
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #ffcc00;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 8px;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
