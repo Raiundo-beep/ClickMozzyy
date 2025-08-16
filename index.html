@@ -3,222 +3,80 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ClickMoz - Ganhe Dinheiro Online em Moçambique: Tarefas Simples, Pagamentos Rápidos!</title>
+    <title>ClickMoz - Ganhe Dinheiro Online em Moçambique</title>
     <meta name="description" content="ClickMoz: A maneira mais fácil de ganhar dinheiro online em Moçambique. Realize tarefas simples, receba pagamentos rápidos via M-Pesa, e-Mola ou conta bancária. Comece a ganhar hoje!">
-
-    <!-- Importa os ícones e o Bootstrap -->
+    <!-- Importa o Tailwind CSS para um design responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Importa a biblioteca de ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Inter', sans-serif;
             background: #f4f4f4;
             color: #333;
         }
-        header {
-            background-color: #ffcc00;
-            color: #000;
-            padding: 1rem;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .hero {
-            text-align: center;
-            padding: 3rem 1rem;
-            background: #fff;
-            border-bottom: 2px solid #eee;
-        }
-        .hero h1 {
-            font-size: 2.2rem;
-            margin-bottom: 1rem;
-        }
-        .hero p {
-            font-size: 1.1rem;
-            color: #666;
-            margin-bottom: 1.5rem;
-        }
-        .btn {
-            display: inline-block;
-            padding: 0.8rem 1.5rem;
-            background-color: #ffcc00;
-            color: #000;
-            border: none;
-            border-radius: 8px;
-            margin: 0 0.5rem;
-            font-weight: bold;
-            text-decoration: none;
-            cursor: pointer;
-            transition: background 0.3s ease;
-            font-size: 1rem;
-        }
-        .btn:hover {
-            background-color: #e6b800;
-        }
-        .how-it-works {
-            text-align: center;
-            padding: 2rem;
-            background: #eee;
-        }
-        .steps-container {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-        .step-box {
-            width: 250px;
-            background: #fff;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.05);
-            text-align: center;
-        }
-        .step-box i {
-            font-size: 2rem;
-            color: #ffcc00;
-            margin-bottom: 0.5rem;
-        }
-        .features {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 2rem;
-            padding: 2rem;
-            background: #fafafa;
-        }
-        .feature-box {
-            width: 250px;
-            background: #fff;
-            padding: 1rem;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05);
-            text-align: center;
-        }
-        .feature-box i {
-            font-size: 2rem;
-            color: #ffcc00;
-            margin-bottom: 0.5rem;
-        }
-        footer {
-            background: #222;
-            color: #ccc;
-            text-align: center;
-            padding: 1rem;
-            font-size: 0.9rem;
-        }
-        footer a {
-            color: #ffcc00;
-            text-decoration: none;
-            margin: 0 0.5rem;
-        }
-        @media (max-width: 600px) {
-            .features {
-                flex-direction: column;
-                align-items: center;
-            }
-        }
-
-        /* ESTILOS DOS MODAIS */
         .modal {
             display: none;
             position: fixed;
             z-index: 1000;
             left: 0; top: 0;
             width: 100%; height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
             justify-content: center;
             align-items: center;
-            padding: 1rem;
+            transition: all 0.3s ease-in-out;
+            opacity: 0;
+        }
+        .modal.active {
+            display: flex;
+            opacity: 1;
         }
         .modal-content {
             background-color: #fff;
-            padding: 2rem;
+            padding: 2.5rem;
             border-radius: 12px;
-            max-width: 400px;
-            width: 100%;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
         }
-        .modal-header {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            font-weight: bold;
-            color: #ffcc00;
-            text-align: center;
+        .modal.active .modal-content {
+            transform: translateY(0);
         }
         .close-btn {
             position: absolute;
-            top: 12px; right: 15px;
-            font-size: 1.4rem;
+            top: 15px; right: 20px;
+            font-size: 1.5rem;
             font-weight: bold;
-            color: #333;
+            color: #aaa;
             cursor: pointer;
+            transition: color 0.2s;
         }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
+        .close-btn:hover {
+            color: #333;
         }
-        input[type="text"],
-        input[type="password"],
-        input[type="tel"] {
-            padding: 0.8rem;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 1rem;
+        input[type="text"], input[type="password"], input[type="tel"] {
+            padding: 0.9rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        input[type="text"]:focus,
-        input[type="password"]:focus,
-        input[type="tel"]:focus {
+        input[type="text"]:focus, input[type="password"]:focus, input[type="tel"]:focus {
             outline: none;
             border-color: #ffcc00;
-            box-shadow: 0 0 8px #ffcc00;
+            box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.4);
         }
-        .error-msg {
-            color: #d9534f;
-            font-size: 0.9rem;
-            margin-top: -0.5rem;
-        }
-        .submit-btn {
-            background-color: #ffcc00;
-            border: none;
-            padding: 0.8rem;
-            font-weight: bold;
-            color: #000;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: background 0.3s ease;
-            position: relative;
-        }
-        .submit-btn:hover {
-            background-color: #e6b800;
-        }
-        .submit-btn[disabled] {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .toggle-link {
-            text-align: center;
-            margin-top: 0.8rem;
-            font-size: 0.9rem;
-            cursor: pointer;
-            color: #ffcc00;
-            text-decoration: underline;
-        }
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #ffcc00;
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
             border-radius: 50%;
-            width: 18px;
-            height: 18px;
+            width: 24px;
+            height: 24px;
             animation: spin 1s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-            margin-left: 8px;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -226,152 +84,140 @@
         }
     </style>
 </head>
-<body>
+<body class="bg-gray-100">
 
-    <header>
-        <h1><i class="fas fa-hand-holding-usd"></i> ClickMoz</h1>
-        <p>Sua Plataforma para Ganhos Online em Moçambique</p>
+    <header class="bg-yellow-400 text-black py-4 text-center shadow-md">
+        <h1 class="text-3xl font-extrabold"><i class="fas fa-hand-holding-usd mr-2"></i>ClickMoz</h1>
+        <p class="text-sm mt-1">Sua Plataforma para Ganhos Online em Moçambique</p>
     </header>
 
-    <section class="hero">
-        <h1>Desbloqueie Ganhos Reais Online em Moçambique com a ClickMoz!</h1>
-        <p>Transforme seu tempo livre em Meticais! Na ClickMoz, você realiza tarefas simples e rápidas no seu celular ou computador, e recebe pagamentos diretos na sua conta móvel ou bancária.</p>
-        <button class="btn btn-primary-cta" id="btnCadastro">Comece a Ganhar Agora!</button>
-        <button class="btn" id="btnLogin">Já sou membro, Entrar</button>
-    </section>
-
-    <section class="how-it-works">
-        <h2>Como Funciona a ClickMoz? É Fácil!</h2>
-        <div class="steps-container">
-            <div class="step-box">
-                <i class="fas fa-user-plus"></i>
-                <h3>1. Crie sua Conta Grátis</h3>
-                <p>Registe-se em segundos com seu número de telefone.</p>
-            </div>
-            <div class="step-box">
-                <i class="fas fa-check-circle"></i>
-                <h3>2. Escolha e Faça Tarefas</h3>
-                <p>Navegue por uma variedade de tarefas simples: inquéritos, cliques, etc.</p>
-            </div>
-            <div class="step-box">
-                <i class="fas fa-money-bill-alt"></i>
-                <h3>3. Receba seus Meticais</h3>
-                <p>Levante seus ganhos de forma simples e rápida via M-Pesa, e-Mola ou banco.</p>
-            </div>
-        </div>
-    </section>
-
-    <section class="features">
-        <div class="feature-box">
-            <i class="fas fa-tasks"></i>
-            <h3>Tarefas Simples, Ganhos Reais</h3>
-            <p>Complete inquéritos, assista a vídeos e realize outras tarefas rápidas diretamente do seu telemóvel ou computador. Ganhe Meticais a cada clique!</p>
-        </div>
-        <div class="feature-box">
-            <i class="fas fa-wallet"></i>
-            <h3>Levantamentos Fáceis e Rápidos</h3>
-            <p>Não espere! Retire seus ganhos diretamente para sua conta de M-Pesa, e-Mola ou conta bancária em Moçambique, sem burocracia.</p>
-        </div>
-        <div class="feature-box">
-            <i class="fas fa-user-friends"></i>
-            <h3>Ganhe Mais Indicando Amigos</h3>
-            <p>Partilhe seu link exclusivo e ganhe comissões extra sobre os ganhos dos seus amigos na ClickMoz. Quanto mais amigos, mais ganhos!</p>
-        </div>
-        <div class="feature-box">
-            <i class="fas fa-headset"></i>
-            <h3>Suporte Dedicado Local</h3>
-            <p>Nossa equipe está pronta para ajudar com qualquer dúvida ou suporte que precisar, garantindo sua melhor experiência com a ClickMoz.</p>
-        </div>
-    </section>
-
-    <footer>
-        <p>&copy; 2025 ClickMoz. Todos os direitos reservados.</p>
-        <p>
-            <a href="#">Sobre Nós</a> |
-            <a href="#">Termos de Uso</a> |
-            <a href="#">Política de Privacidade</a> |
-            <a href="#">FAQ e Suporte</a>
+    <section class="hero bg-white text-center py-16 px-4 border-b-2 border-gray-200">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Desbloqueie Ganhos Reais em Moçambique!</h1>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+            Transforme seu tempo livre em Meticais! Na ClickMoz, você realiza tarefas simples e rápidas no seu celular ou computador, e recebe pagamentos diretos via M-Pesa, e-Mola ou banco.
         </p>
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <button id="btnCadastro" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                Comece a Ganhar Agora!
+            </button>
+            <button id="btnLogin" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                Já sou membro, Entrar
+            </button>
+        </div>
+    </section>
+
+    <section class="py-12 bg-gray-100 text-center">
+        <h2 class="text-2xl md:text-3xl font-bold mb-8">Como Funciona a ClickMoz? É Fácil!</h2>
+        <div class="steps-container flex flex-wrap justify-center gap-8 px-4">
+            <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-xs transition-transform transform hover:scale-105">
+                <i class="fas fa-user-plus text-5xl text-yellow-500 mb-3"></i>
+                <h3 class="text-xl font-semibold mb-2">1. Crie sua Conta Grátis</h3>
+                <p class="text-gray-600">Registe-se em segundos com seu número de telefone e comece já.</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-xs transition-transform transform hover:scale-105">
+                <i class="fas fa-check-circle text-5xl text-yellow-500 mb-3"></i>
+                <h3 class="text-xl font-semibold mb-2">2. Escolha e Faça Tarefas</h3>
+                <p class="text-gray-600">Navegue por uma variedade de tarefas simples e rápidas de completar.</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-xs transition-transform transform hover:scale-105">
+                <i class="fas fa-money-bill-alt text-5xl text-yellow-500 mb-3"></i>
+                <h3 class="text-xl font-semibold mb-2">3. Receba seus Meticais</h3>
+                <p class="text-gray-600">Levante seus ganhos de forma simples e segura via M-Pesa, e-Mola ou banco.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-gray-300 py-6 text-center">
+        <p>&copy; 2025 ClickMoz. Todos os direitos reservados.</p>
+        <div class="mt-2 text-sm">
+            <a href="#" class="hover:text-yellow-400 transition-colors mx-2">Sobre Nós</a> |
+            <a href="#" class="hover:text-yellow-400 transition-colors mx-2">Termos de Uso</a> |
+            <a href="#" class="hover:text-yellow-400 transition-colors mx-2">Política de Privacidade</a> |
+            <a href="#" class="hover:text-yellow-400 transition-colors mx-2">FAQ</a>
+        </div>
     </footer>
 
     <!-- MODAL LOGIN -->
-    <div class="modal" id="modalLogin">
+    <div id="modalLogin" class="modal">
         <div class="modal-content">
-            <span class="close-btn" id="closeLogin">&times;</span>
-            <div class="modal-header">Login</div>
-            <form id="formLogin" novalidate>
-                <label for="loginTelefone">Número de Telefone</label>
-                <input type="tel" id="loginTelefone" placeholder="Ex: 82xxxxxxx" maxlength="9" required />
-                <div class="error-msg" id="errorLoginTelefone"></div>
-
-                <label for="loginSenha">Senha</label>
-                <input type="password" id="loginSenha" placeholder="Sua senha" required minlength="6" />
-                <div class="error-msg" id="errorLoginSenha"></div>
-
-                <button type="submit" class="submit-btn" id="btnSubmitLogin">Entrar</button>
+            <span id="closeLogin" class="close-btn">&times;</span>
+            <h2 class="text-2xl font-bold text-center mb-6">Entrar na sua Conta</h2>
+            <form id="formLogin" class="flex flex-col gap-4">
+                <div>
+                    <label for="loginTelefone" class="block text-sm font-medium text-gray-700 mb-1">Número de Telefone</label>
+                    <input type="tel" id="loginTelefone" placeholder="Ex: 82xxxxxxx" maxlength="9" required class="w-full">
+                    <div id="errorLoginTelefone" class="text-red-500 text-sm mt-1"></div>
+                </div>
+                <div>
+                    <label for="loginSenha" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                    <input type="password" id="loginSenha" placeholder="Sua senha" required minlength="6" class="w-full">
+                    <div id="errorLoginSenha" class="text-red-500 text-sm mt-1"></div>
+                </div>
+                <button type="submit" id="btnSubmitLogin" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl transition-colors flex items-center justify-center">
+                    Entrar
+                </button>
             </form>
-            <div class="toggle-link" id="abrirCadastro">Ainda não tem conta? Crie agora</div>
-            <div class="toggle-link" id="esqueceuSenha" style="margin-top: 10px; color: #444;">Esqueceu a senha?</div>
+            <p class="text-center text-sm mt-4 text-gray-600">
+                Ainda não tem conta? <span id="abrirCadastro" class="text-yellow-500 font-semibold cursor-pointer hover:underline">Crie agora</span>
+            </p>
+            <p class="text-center text-sm mt-2 text-gray-500">
+                <span id="esqueceuSenha" class="text-gray-500 hover:underline cursor-pointer">Esqueceu a senha?</span>
+            </p>
         </div>
     </div>
 
     <!-- MODAL CADASTRO -->
-    <div class="modal" id="modalCadastro">
+    <div id="modalCadastro" class="modal">
         <div class="modal-content">
-            <span class="close-btn" id="closeCadastro">&times;</span>
-            <div class="modal-header">Criar Conta</div>
-            <form id="formCadastro" novalidate>
-                <label for="nome">Nome</label>
-                <input type="text" id="nome" placeholder="Seu nome" required minlength="4" />
-                <div class="error-msg" id="errorNome"></div>
-
-                <label for="sobrenome">Sobrenome</label>
-                <input type="text" id="sobrenome" placeholder="Seu sobrenome" required minlength="4" />
-                <div class="error-msg" id="errorSobrenome"></div>
-
-                <label for="telefone">Número de Telefone</label>
-                <input type="tel" id="telefone" placeholder="Ex: 82xxxxxxx" maxlength="9" required />
-                <div class="error-msg" id="errorTelefone"></div>
-
-                <label for="senha">Senha</label>
-                <input type="password" id="senha" placeholder="Crie uma senha" required minlength="6" />
-                <div class="error-msg" id="errorSenha"></div>
-
-                <button type="submit" class="submit-btn" id="btnSubmitCadastro">Cadastrar</button>
+            <span id="closeCadastro" class="close-btn">&times;</span>
+            <h2 class="text-2xl font-bold text-center mb-6">Criar Nova Conta</h2>
+            <form id="formCadastro" class="flex flex-col gap-4">
+                <div>
+                    <label for="nome" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                    <input type="text" id="nome" placeholder="Seu nome" required minlength="4" class="w-full">
+                    <div id="errorNome" class="text-red-500 text-sm mt-1"></div>
+                </div>
+                <div>
+                    <label for="sobrenome" class="block text-sm font-medium text-gray-700 mb-1">Sobrenome</label>
+                    <input type="text" id="sobrenome" placeholder="Seu sobrenome" required minlength="4" class="w-full">
+                    <div id="errorSobrenome" class="text-red-500 text-sm mt-1"></div>
+                </div>
+                <div>
+                    <label for="telefone" class="block text-sm font-medium text-gray-700 mb-1">Número de Telefone</label>
+                    <input type="tel" id="telefone" placeholder="Ex: 82xxxxxxx" maxlength="9" required class="w-full">
+                    <div id="errorTelefone" class="text-red-500 text-sm mt-1"></div>
+                </div>
+                <div>
+                    <label for="senha" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                    <input type="password" id="senha" placeholder="Crie uma senha" required minlength="6" class="w-full">
+                    <div id="errorSenha" class="text-red-500 text-sm mt-1"></div>
+                </div>
+                <button type="submit" id="btnSubmitCadastro" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl transition-colors flex items-center justify-center">
+                    Cadastrar
+                </button>
             </form>
-            <div class="toggle-link" id="abrirLogin">Já tem conta? Faça login</div>
+            <p class="text-center text-sm mt-4 text-gray-600">
+                Já tem conta? <span id="abrirLogin" class="text-yellow-500 font-semibold cursor-pointer hover:underline">Faça login</span>
+            </p>
         </div>
     </div>
 
-    <!-- Scripts do Firebase e do Bootstrap -->
+    <!-- Firebase Imports -->
     <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- O novo ficheiro de configuração -->
+    <script type="module" src="./firebase-config.js"></script>
 
     <script type="module">
-        // Seus scripts Firebase e JS aqui
+        import { firebaseConfig } from './firebase-config.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyD70Uto5Z8gAHclBNm9peW7FKd4pR1-sZA",
-            authDomain: "clickmoz-e7e6b.firebaseapp.com",
-            projectId: "clickmoz-e7e6b",
-            storageBucket: "clickmoz-e7e6b.appspot.com",
-            messagingSenderId: "57111705800",
-            appId: "1:57111705800:web:6ff95f2ce510c0c09f8dfd"
-        };
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
-        function validarPrefixo(telefone) {
-            const prefixosValidos = ['82','83','84','85','86','87'];
-            return prefixosValidos.some(prefixo => telefone.startsWith(prefixo));
-        }
 
         const modalLogin = document.getElementById('modalLogin');
         const modalCadastro = document.getElementById('modalCadastro');
@@ -379,54 +225,40 @@
         const btnCadastro = document.getElementById('btnCadastro');
         const closeLogin = document.getElementById('closeLogin');
         const closeCadastro = document.getElementById('closeCadastro');
+        const btnSubmitLogin = document.getElementById('btnSubmitLogin');
+        const btnSubmitCadastro = document.getElementById('btnSubmitCadastro');
 
-        btnLogin.onclick = () => {
-            modalLogin.style.display = 'flex';
-            modalCadastro.style.display = 'none';
-            limparErros();
-            limparForms();
-        };
-        btnCadastro.onclick = () => {
-            modalCadastro.style.display = 'flex';
-            modalLogin.style.display = 'none';
-            limparErros();
-            limparForms();
-        };
-        closeLogin.onclick = () => modalLogin.style.display = 'none';
-        closeCadastro.onclick = () => modalCadastro.style.display = 'none';
+        function toggleModal(modal, show) {
+            modal.classList.toggle('active', show);
+        }
 
-        document.getElementById('abrirCadastro').onclick = () => {
-            modalLogin.style.display = 'none';
-            modalCadastro.style.display = 'flex';
-            limparErros();
-            limparForms();
-        };
-        document.getElementById('abrirLogin').onclick = () => {
-            modalCadastro.style.display = 'none';
-            modalLogin.style.display = 'flex';
-            limparErros();
-            limparForms();
-        };
+        btnLogin.onclick = () => toggleModal(modalLogin, true);
+        btnCadastro.onclick = () => toggleModal(modalCadastro, true);
+        closeLogin.onclick = () => toggleModal(modalLogin, false);
+        closeCadastro.onclick = () => toggleModal(modalCadastro, false);
+        document.getElementById('abrirCadastro').onclick = () => { toggleModal(modalLogin, false); toggleModal(modalCadastro, true); };
+        document.getElementById('abrirLogin').onclick = () => { toggleModal(modalCadastro, false); toggleModal(modalLogin, true); };
 
         window.onclick = (event) => {
-            if(event.target === modalLogin) modalLogin.style.display = 'none';
-            if(event.target === modalCadastro) modalCadastro.style.display = 'none';
+            if (event.target === modalLogin) toggleModal(modalLogin, false);
+            if (event.target === modalCadastro) toggleModal(modalCadastro, false);
         };
 
-        function limparErros() {
-            document.querySelectorAll('.error-msg').forEach(el => el.textContent = '');
+        function validarPrefixo(telefone) {
+            const prefixosValidos = ['82','83','84','85','86','87'];
+            return prefixosValidos.some(prefixo => telefone.startsWith(prefixo));
         }
-        function limparForms() {
-            document.querySelectorAll('form').forEach(form => form.reset());
+
+        function limparErros() {
+            document.querySelectorAll('.text-red-500').forEach(el => el.textContent = '');
         }
 
         function setLoading(button, loading) {
-            if(loading) {
-                button.disabled = true;
-                button.innerHTML = button.textContent + '<span class="spinner"></span>';
+            button.disabled = loading;
+            if (loading) {
+                button.innerHTML = '<span class="loading-spinner"></span>';
             } else {
-                button.disabled = false;
-                button.innerHTML = button.textContent.replace(/<span class="spinner"><\/span>/g, '');
+                button.innerHTML = button.id === 'btnSubmitLogin' ? 'Entrar' : 'Cadastrar';
             }
         }
 
@@ -435,37 +267,28 @@
             limparErros();
             const telefone = document.getElementById('loginTelefone').value.trim();
             const senha = document.getElementById('loginSenha').value.trim();
-            const btnSubmitLogin = document.getElementById('btnSubmitLogin');
             let valid = true;
 
-            if(telefone.length !== 9){
-                document.getElementById('errorLoginTelefone').textContent = 'Telefone deve ter 9 dígitos.';
-                valid = false;
-            } else if(!validarPrefixo(telefone)){
-                document.getElementById('errorLoginTelefone').textContent = 'Prefixo inválido. Use 82,83,84,85,86 ou 87.';
+            if(telefone.length !== 9 || !validarPrefixo(telefone)){
+                document.getElementById('errorLoginTelefone').textContent = 'Telefone inválido. Ex: 84xxxxxxx.';
                 valid = false;
             }
-
             if(senha.length < 6){
                 document.getElementById('errorLoginSenha').textContent = 'Senha deve ter no mínimo 6 caracteres.';
                 valid = false;
             }
             if(!valid) return;
 
+            setLoading(btnSubmitLogin, true);
+            const email = telefone + '@clickmoz.fake';
             try {
-                setLoading(btnSubmitLogin, true);
-                const email = telefone + '@clickmoz.fake';
                 await signInWithEmailAndPassword(auth, email, senha);
-                alert('Login efetuado com sucesso!');
-                modalLogin.style.display = 'none';
                 window.location.href = 'painel.html';
             } catch (error) {
-                if(error.code === 'auth/user-not-found'){
-                    document.getElementById('errorLoginSenha').textContent = 'Usuário não encontrado.';
-                } else if(error.code === 'auth/wrong-password'){
-                    document.getElementById('errorLoginSenha').textContent = 'Senha incorreta.';
+                if(error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password'){
+                    document.getElementById('errorLoginSenha').textContent = 'Credenciais inválidas.';
                 } else {
-                    document.getElementById('errorLoginSenha').textContent = 'Erro no login: ' + error.message;
+                    alert('Erro no login: ' + error.message);
                 }
             } finally {
                 setLoading(btnSubmitLogin, false);
@@ -479,49 +302,32 @@
             const sobrenome = document.getElementById('sobrenome').value.trim();
             const telefone = document.getElementById('telefone').value.trim();
             const senha = document.getElementById('senha').value.trim();
-            const btnSubmitCadastro = document.getElementById('btnSubmitCadastro');
             let valid = true;
 
-            if(nome.length < 4){
-                document.getElementById('errorNome').textContent = 'Nome deve ter no mínimo 4 caracteres.';
-                valid = false;
+            if(nome.length < 4){ document.getElementById('errorNome').textContent = 'Nome deve ter no mínimo 4 caracteres.'; valid = false; }
+            if(sobrenome.length < 4){ document.getElementById('errorSobrenome').textContent = 'Sobrenome deve ter no mínimo 4 caracteres.'; valid = false; }
+            if(telefone.length !== 9 || !validarPrefixo(telefone)){
+                document.getElementById('errorTelefone').textContent = 'Telefone inválido. Ex: 84xxxxxxx.'; valid = false;
             }
-            if(sobrenome.length < 4){
-                document.getElementById('errorSobrenome').textContent = 'Sobrenome deve ter no mínimo 4 caracteres.';
-                valid = false;
-            }
-            if(telefone.length !== 9){
-                document.getElementById('errorTelefone').textContent = 'Telefone deve ter 9 dígitos.';
-                valid = false;
-            } else if(!validarPrefixo(telefone)){
-                document.getElementById('errorTelefone').textContent = 'Prefixo inválido. Use 82,83,84,85,86 ou 87.';
-                valid = false;
-            }
-            if(senha.length < 6){
-                document.getElementById('errorSenha').textContent = 'Senha deve ter no mínimo 6 caracteres.';
-                valid = false;
-            }
+            if(senha.length < 6){ document.getElementById('errorSenha').textContent = 'Senha deve ter no mínimo 6 caracteres.'; valid = false; }
             if(!valid) return;
 
+            setLoading(btnSubmitCadastro, true);
+            const email = telefone + '@clickmoz.fake';
             try {
-                setLoading(btnSubmitCadastro, true);
-                const email = telefone + '@clickmoz.fake';
                 const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-                const user = userCredential.user;
-                await setDoc(doc(db, "usuarios", user.uid), {
+                await setDoc(doc(db, "usuarios", userCredential.user.uid), {
                     nome,
                     sobrenome,
                     telefone,
                     saldo: 0
                 });
-                alert('Cadastro realizado com sucesso!');
-                modalCadastro.style.display = 'none';
                 window.location.href = 'painel.html';
             } catch (error) {
                 if(error.code === 'auth/email-already-in-use'){
                     document.getElementById('errorTelefone').textContent = 'Este número já está cadastrado.';
                 } else {
-                    document.getElementById('errorSenha').textContent = 'Erro no cadastro: ' + error.message;
+                    alert('Erro no cadastro: ' + error.message);
                 }
             } finally {
                 setLoading(btnSubmitCadastro, false);
@@ -530,13 +336,12 @@
 
         document.getElementById('esqueceuSenha').onclick = () => {
             const telefone = prompt('Digite seu número de telefone para receber o link de recuperação (9 dígitos):');
-            if(!telefone) return alert('Número não informado');
-            if(telefone.length !== 9 || !validarPrefixo(telefone)) {
-                return alert('Número inválido. Use prefixos 82,83,84,85,86 ou 87 e 9 dígitos.');
+            if(!telefone || telefone.length !== 9 || !validarPrefixo(telefone)) {
+                return alert('Número inválido. Use um número de 9 dígitos com os prefixos corretos (82, 83, 84, 85, 86, 87).');
             }
             const email = telefone + '@clickmoz.fake';
             sendPasswordResetEmail(auth, email)
-                .then(() => alert('Email de redefinição enviado! Verifique sua caixa de entrada.'))
+                .then(() => alert('Verifique sua caixa de entrada para redefinir a senha.'))
                 .catch(err => alert('Erro: ' + err.message));
         };
     </script>
