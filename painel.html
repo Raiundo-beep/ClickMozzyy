@@ -14,59 +14,76 @@
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
         }
-        /* Estilos do Modal de Levantamento */
         .modal {
             display: none;
             position: fixed;
             z-index: 1000;
             left: 0; top: 0;
             width: 100%; height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
             justify-content: center;
             align-items: center;
+            transition: all 0.3s ease-in-out;
+            opacity: 0;
+        }
+        .modal.active {
+            display: flex;
+            opacity: 1;
         }
         .modal-content {
             background-color: #fff;
-            padding: 24px;
+            padding: 2.5rem;
             border-radius: 12px;
-            max-width: 400px;
+            max-width: 420px;
             width: 90%;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal.active .modal-content {
+            transform: translateY(0);
         }
         .close-btn {
-            color: #aaa;
             position: absolute;
-            top: 10px; right: 20px;
-            font-size: 28px;
+            top: 15px; right: 20px;
+            font-size: 1.5rem;
             font-weight: bold;
+            color: #aaa;
             cursor: pointer;
+            transition: color 0.2s;
         }
-        .close-btn:hover, .close-btn:focus {
-            color: black;
-            text-decoration: none;
+        .close-btn:hover {
+            color: #333;
         }
-        input[type="number"], select {
-            width: 100%;
-            padding: 10px;
-            margin-top: 8px;
-            border: 1px solid #ccc;
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: #888;
+            font-style: italic;
+        }
+        /* Para o formulário de adicionar tarefas */
+        input[type="text"], input[type="number"] {
+            padding: 0.9rem;
+            border: 1px solid #ddd;
             border-radius: 8px;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        button[type="submit"] {
-            background-color: #ffcc00;
-            color: black;
-            font-weight: bold;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.3s;
-        }
-        button[type="submit"]:hover {
-            background-color: #e6b800;
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #ffcc00;
+            box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.4);
         }
     </style>
 </head>
@@ -75,7 +92,7 @@
     <!-- Header do Painel -->
     <header class="bg-white shadow-md rounded-xl p-4 w-full max-w-2xl mb-6 flex justify-between items-center">
         <h1 class="text-xl md:text-2xl font-bold text-gray-800">
-            <i class="fas fa-user-circle text-gray-600 mr-2"></i>Bem-vindo, <span id="userName">Usuário</span>!
+            <i class="fas fa-user-circle text-gray-600 mr-2"></i>Bem-vindo, <span id="userName">Carregando...</span>!
         </h1>
         <button id="btnSair" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition-colors">
             Sair
@@ -86,75 +103,90 @@
     <section class="bg-yellow-400 text-gray-900 shadow-md rounded-xl p-6 w-full max-w-2xl mb-6 text-center">
         <p class="text-sm font-medium">Seu Saldo Atual</p>
         <h2 id="userBalance" class="text-4xl md:text-5xl font-extrabold mt-1">
-            MT 0.00
+            <div class="loading-spinner mx-auto w-10 h-10 border-white border-t-yellow-600"></div>
         </h2>
     </section>
 
     <!-- Botões de Ação -->
     <section class="flex flex-col md:flex-row gap-4 w-full max-w-2xl mb-6">
-        <button id="btnVerTarefas" class="flex-1 bg-white hover:bg-gray-50 transition-colors shadow-md rounded-xl p-6 flex flex-col items-center">
-            <i class="fas fa-tasks text-4xl text-yellow-500 mb-2"></i>
-            <span class="font-semibold text-lg">Ver Tarefas</span>
-            <p class="text-sm text-gray-500">Comece a ganhar agora</p>
-        </button>
         <button id="btnLevantar" class="flex-1 bg-white hover:bg-gray-50 transition-colors shadow-md rounded-xl p-6 flex flex-col items-center">
             <i class="fas fa-wallet text-4xl text-yellow-500 mb-2"></i>
             <span class="font-semibold text-lg">Levantar Dinheiro</span>
             <p class="text-sm text-gray-500">Retire seus ganhos</p>
         </button>
+        <button id="btnAdicionarTarefa" class="flex-1 bg-white hover:bg-gray-50 transition-colors shadow-md rounded-xl p-6 flex flex-col items-center">
+            <i class="fas fa-plus-circle text-4xl text-yellow-500 mb-2"></i>
+            <span class="font-semibold text-lg">Adicionar Tarefa</span>
+            <p class="text-sm text-gray-500">Crie novas tarefas</p>
+        </button>
     </section>
 
-    <!-- Seção de Tarefas (Exemplo) -->
-    <section id="tarefasSection" class="bg-white shadow-md rounded-xl p-6 w-full max-w-2xl">
+    <!-- Seção de Tarefas -->
+    <section class="bg-white shadow-md rounded-xl p-6 w-full max-w-2xl">
         <h3 class="text-xl font-semibold text-gray-800 mb-4">Tarefas Disponíveis</h3>
         <div id="tasksList" class="space-y-4">
-            <!-- As tarefas dinâmicas serão inseridas aqui -->
+            <p class="text-center loading-text">Carregando tarefas...</p>
         </div>
     </section>
 
-    <!-- Modal de Levantamento de Dinheiro -->
+    <!-- MODAL DE LEVANTAMENTO -->
     <div id="modalLevantar" class="modal">
         <div class="modal-content">
-            <span class="close-btn" id="closeModalLevantar">&times;</span>
-            <h2 class="text-2xl font-bold text-center mb-4">Levantar Dinheiro</h2>
-            <form id="formLevantar">
-                <div class="mb-4">
-                    <label for="valorLevantar" class="block text-gray-700 font-medium mb-1">Valor a Levantar (MT)</label>
-                    <input type="number" id="valorLevantar" name="valorLevantar" min="1" step="0.01" required>
+            <span id="closeModalLevantar" class="close-btn">&times;</span>
+            <h2 class="text-2xl font-bold text-center mb-6">Levantar Dinheiro</h2>
+            <form id="formLevantar" class="flex flex-col gap-4">
+                <div>
+                    <label for="valorLevantar" class="block text-sm font-medium text-gray-700 mb-1">Valor a Levantar (MT)</label>
+                    <input type="number" id="valorLevantar" name="valorLevantar" min="1" step="0.01" required class="w-full">
                 </div>
-                <div class="mb-6">
-                    <label for="metodoPagamento" class="block text-gray-700 font-medium mb-1">Método de Pagamento</label>
-                    <select id="metodoPagamento" name="metodoPagamento" required>
+                <div>
+                    <label for="metodoPagamento" class="block text-sm font-medium text-gray-700 mb-1">Método de Pagamento</label>
+                    <select id="metodoPagamento" name="metodoPagamento" required class="w-full">
                         <option value="mpesa">M-Pesa</option>
                         <option value="emola">e-Mola</option>
                         <option value="banco">Conta Bancária</option>
                     </select>
                 </div>
-                <button type="submit">Confirmar Levantamento</button>
+                <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl transition-colors">Confirmar Levantamento</button>
             </form>
         </div>
     </div>
 
-    <!-- Scripts do Firebase e JS do Painel -->
+    <!-- MODAL DE ADICIONAR TAREFA -->
+    <div id="modalAdicionarTarefa" class="modal">
+        <div class="modal-content">
+            <span id="closeModalAdicionarTarefa" class="close-btn">&times;</span>
+            <h2 class="text-2xl font-bold text-center mb-6">Adicionar Nova Tarefa</h2>
+            <form id="formAdicionarTarefa" class="flex flex-col gap-4">
+                <div>
+                    <label for="tituloTarefa" class="block text-sm font-medium text-gray-700 mb-1">Título da Tarefa</label>
+                    <input type="text" id="tituloTarefa" name="tituloTarefa" placeholder="Ex: Responder inquérito" required class="w-full">
+                </div>
+                <div>
+                    <label for="recompensaTarefa" class="block text-sm font-medium text-gray-700 mb-1">Recompensa (MT)</label>
+                    <input type="number" id="recompensaTarefa" name="recompensaTarefa" min="0.01" step="0.01" required class="w-full">
+                </div>
+                <button type="submit" id="btnSubmitAdicionarTarefa" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl transition-colors flex items-center justify-center">
+                    Adicionar Tarefa
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase Imports -->
     <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+    <!-- O novo ficheiro de configuração -->
+    <script type="module" src="./firebase-config.js"></script>
 
     <script type="module">
+        import { firebaseConfig } from './firebase-config.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        // SUA CONFIGURAÇÃO DO FIREBASE (substitua esta secção)
-        const firebaseConfig = {
-            apiKey: "AIzaSyD70Uto5Z8gAHclBNm9peW7FKd4pR1-sZA",
-            authDomain: "clickmoz-e7e6b.firebaseapp.com",
-            projectId: "clickmoz-e7e6b",
-            storageBucket: "clickmoz-e7e6b.firebasestorage.app",
-            messagingSenderId: "57111705800",
-            appId: "1:57111705800:web:6ff95f2ce510c0c09f8dfd",
-            measurementId: "G-GBLYFL5WNM"
-        };
+        // Inicializa o Firebase com a sua configuração
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -163,127 +195,117 @@
         const userBalanceElement = document.getElementById('userBalance');
         const tasksListElement = document.getElementById('tasksList');
         const btnSair = document.getElementById('btnSair');
-        const btnVerTarefas = document.getElementById('btnVerTarefas');
         const btnLevantar = document.getElementById('btnLevantar');
+        const btnAdicionarTarefa = document.getElementById('btnAdicionarTarefa');
         const modalLevantar = document.getElementById('modalLevantar');
+        const modalAdicionarTarefa = document.getElementById('modalAdicionarTarefa');
         const closeModalLevantar = document.getElementById('closeModalLevantar');
+        const closeModalAdicionarTarefa = document.getElementById('closeModalAdicionarTarefa');
+        const formAdicionarTarefa = document.getElementById('formAdicionarTarefa');
 
-        // Função para mostrar as tarefas do Firestore
-        async function fetchAndDisplayTasks() {
-            tasksListElement.innerHTML = ''; // Limpa a lista antes de adicionar novas tarefas
-            const tasksRef = collection(db, "tarefas");
-            const querySnapshot = await getDocs(tasksRef);
-            
-            if (querySnapshot.empty) {
-                tasksListElement.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa disponível no momento.</p>';
-                return;
-            }
-
-            querySnapshot.forEach((doc) => {
-                const task = doc.data();
-                const taskId = doc.id;
-                const taskElement = document.createElement('div');
-                taskElement.className = 'bg-gray-50 rounded-lg p-4 flex items-center justify-between';
-                taskElement.innerHTML = `
-                    <div>
-                        <h4 class="font-medium text-gray-900">${task.titulo}</h4>
-                        <p class="text-sm text-gray-600">Ganhe MT ${task.recompensa.toFixed(2)}</p>
-                    </div>
-                    <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg" data-task-id="${taskId}">
-                        Fazer
-                    </button>
-                `;
-                tasksListElement.appendChild(taskElement);
-
-                // Adicionar o evento de clique para cada botão
-                const taskButton = taskElement.querySelector('button');
-                taskButton.addEventListener('click', () => {
-                    alert(`Ação: Você selecionou a tarefa "${task.titulo}". A recompensa é de MT ${task.recompensa.toFixed(2)}.`);
-                    // Futuramente, aqui será a lógica para marcar a tarefa como concluída e adicionar o saldo ao utilizador
-                });
-            });
-        }
-        
-        // Função para adicionar tarefas de exemplo (executar apenas uma vez!)
-        async function addSampleTasks() {
-            const tarefasCollection = collection(db, "tarefas");
-            try {
-                // Adiciona a primeira tarefa se a coleção estiver vazia
-                const tasksSnapshot = await getDocs(tarefasCollection);
-                if (tasksSnapshot.empty) {
-                    await addDoc(tarefasCollection, {
-                        titulo: "Responder Inquérito",
-                        recompensa: 50.00
-                    });
-                    await addDoc(tarefasCollection, {
-                        titulo: "Ver Anúncio de 30s",
-                        recompensa: 1.50
-                    });
-                    await addDoc(tarefasCollection, {
-                        titulo: "Seguir página no Facebook",
-                        recompensa: 10.00
-                    });
-                    await addDoc(tarefasCollection, {
-                        titulo: "Ver vídeo de 2 minutos",
-                        recompensa: 5.00
-                    });
-                    alert("Tarefas de exemplo adicionadas ao Firestore. Por favor, recarregue a página.");
-                }
-            } catch (e) {
-                console.error("Erro ao adicionar tarefas de exemplo: ", e);
-            }
+        // Função para mostrar ou esconder modais
+        function toggleModal(modal, show) {
+            modal.classList.toggle('active', show);
         }
 
-        // Lógica de Autenticação: Redireciona se não houver utilizador logado
+        // Lógica de Autenticação e Carregamento de Dados (em tempo real)
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // Carrega dados do utilizador em tempo real
                 const userDocRef = doc(db, "usuarios", user.uid);
-                const userDocSnap = await getDoc(userDocRef);
-                if (userDocSnap.exists()) {
-                    const userData = userDocSnap.data();
-                    userNameElement.textContent = userData.nome || "Usuário";
-                    userBalanceElement.textContent = `MT ${userData.saldo.toFixed(2)}`;
-                }
-                // Chama a função para buscar e mostrar as tarefas
-                await fetchAndDisplayTasks();
-                // Opcional: Descomente a linha abaixo para adicionar tarefas de exemplo
-                // await addSampleTasks();
+                onSnapshot(userDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
+                        userNameElement.textContent = userData.nome || "Usuário";
+                        userBalanceElement.textContent = `MT ${userData.saldo.toFixed(2)}`;
+                    } else {
+                        console.log("Documento do utilizador não encontrado!");
+                        signOut(auth);
+                    }
+                });
+
+                // Carrega as tarefas em tempo real (onSnapshot)
+                const tasksCollectionRef = collection(db, "tarefas");
+                onSnapshot(tasksCollectionRef, (querySnapshot) => {
+                    tasksListElement.innerHTML = '';
+                    if (querySnapshot.empty) {
+                        tasksListElement.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa disponível no momento.</p>';
+                        return;
+                    }
+                    querySnapshot.forEach((doc) => {
+                        const task = doc.data();
+                        const taskId = doc.id;
+                        const taskElement = document.createElement('div');
+                        taskElement.className = 'bg-gray-50 rounded-lg p-4 flex items-center justify-between shadow-sm';
+                        taskElement.innerHTML = `
+                            <div>
+                                <h4 class="font-medium text-gray-900">${task.titulo}</h4>
+                                <p class="text-sm text-gray-600">Ganhe MT ${task.recompensa.toFixed(2)}</p>
+                            </div>
+                            <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg transition-colors">
+                                Fazer
+                            </button>
+                        `;
+                        tasksListElement.appendChild(taskElement);
+
+                        taskElement.querySelector('button').addEventListener('click', () => {
+                            alert(`Você iniciou a tarefa: "${task.titulo}".`);
+                            // Futuramente, a lógica para marcar a tarefa como concluída seria aqui
+                        });
+                    });
+                });
+
             } else {
+                // Redireciona para a página inicial se não houver utilizador logado
                 window.location.href = 'index.html';
             }
         });
 
-        // Evento de clique para o botão "Sair"
+        // Eventos de clique para os botões e modais
         btnSair.addEventListener('click', () => {
             signOut(auth).then(() => {
-                alert('Sessão terminada com sucesso!');
                 window.location.href = 'index.html';
-            }).catch((error) => {
-                alert('Erro ao sair: ' + error.message);
             });
         });
 
-        // Evento de clique para o botão "Ver Tarefas" (agora ele recarrega a lista)
-        btnVerTarefas.addEventListener('click', fetchAndDisplayTasks);
+        btnLevantar.addEventListener('click', () => toggleModal(modalLevantar, true));
+        closeModalLevantar.addEventListener('click', () => toggleModal(modalLevantar, false));
 
-        // Evento de clique para o botão "Levantar Dinheiro"
-        btnLevantar.addEventListener('click', () => {
-            modalLevantar.style.display = 'flex';
-        });
+        btnAdicionarTarefa.addEventListener('click', () => toggleModal(modalAdicionarTarefa, true));
+        closeModalAdicionarTarefa.addEventListener('click', () => toggleModal(modalAdicionarTarefa, false));
 
-        // Evento de clique para fechar o modal
-        closeModalLevantar.addEventListener('click', () => {
-            modalLevantar.style.display = 'none';
-        });
-
-        // Evento para o formulário de levantamento (simulação)
         document.getElementById('formLevantar').addEventListener('submit', (e) => {
             e.preventDefault();
             const valor = document.getElementById('valorLevantar').value;
             const metodo = document.getElementById('metodoPagamento').value;
             alert(`Ação de Levantamento: Solicitou a retirada de MT ${valor} via ${metodo}.`);
-            modalLevantar.style.display = 'none';
+            toggleModal(modalLevantar, false);
         });
+
+        // Lógica para adicionar uma nova tarefa ao Firebase
+        formAdicionarTarefa.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const titulo = document.getElementById('tituloTarefa').value;
+            const recompensa = parseFloat(document.getElementById('recompensaTarefa').value);
+
+            if (!titulo || isNaN(recompensa) || recompensa <= 0) {
+                alert('Por favor, preencha todos os campos corretamente.');
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "tarefas"), {
+                    titulo: titulo,
+                    recompensa: recompensa
+                });
+                alert('Tarefa adicionada com sucesso!');
+                formAdicionarTarefa.reset();
+                toggleModal(modalAdicionarTarefa, false);
+            } catch (e) {
+                alert('Erro ao adicionar tarefa: ' + e.message);
+            }
+        });
+
     </script>
 </body>
 </html>
