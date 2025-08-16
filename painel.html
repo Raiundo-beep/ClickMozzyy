@@ -219,8 +219,16 @@
                         userNameElement.textContent = userData.nome || "Usuário";
                         userBalanceElement.textContent = `MT ${userData.saldo.toFixed(2)}`;
                     } else {
-                        console.log("Documento do utilizador não encontrado!");
-                        signOut(auth);
+                        // CORREÇÃO: O documento do utilizador não existe.
+                        // Isto pode ocorrer se as Regras de Segurança estiverem incorretas.
+                        console.error("ERRO: Documento do utilizador não encontrado no Firestore. A sair...");
+                        
+                        // Use um timeout para permitir que a mensagem seja vista antes do redirecionamento
+                        setTimeout(() => {
+                            signOut(auth).then(() => {
+                                window.location.href = 'index.html';
+                            });
+                        }, 1500); // 1.5 segundos de atraso
                     }
                 });
 
