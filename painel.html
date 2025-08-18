@@ -180,140 +180,132 @@
     <!-- O novo ficheiro de configuração -->
     <script type="module" src="./firebase-config.js"></script>
 
-    <script type="module">
-        import { firebaseConfig } from './firebase-config.js';
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script type="module">
+    import { firebaseConfig } from './firebase-config.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        // Inicializa o Firebase com a sua configuração
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    // Inicializa o Firebase com a sua configuração
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        const userNameElement = document.getElementById('userName');
-        const userBalanceElement = document.getElementById('userBalance');
-        const tasksListElement = document.getElementById('tasksList');
-        const btnSair = document.getElementById('btnSair');
-        const btnLevantar = document.getElementById('btnLevantar');
-        const btnAdicionarTarefa = document.getElementById('btnAdicionarTarefa');
-        const modalLevantar = document.getElementById('modalLevantar');
-        const modalAdicionarTarefa = document.getElementById('modalAdicionarTarefa');
-        const closeModalLevantar = document.getElementById('closeModalLevantar');
-        const closeModalAdicionarTarefa = document.getElementById('closeModalAdicionarTarefa');
-        const formAdicionarTarefa = document.getElementById('formAdicionarTarefa');
+    const userNameElement = document.getElementById('userName');
+    const userBalanceElement = document.getElementById('userBalance');
+    const tasksListElement = document.getElementById('tasksList');
+    const btnSair = document.getElementById('btnSair');
+    const btnLevantar = document.getElementById('btnLevantar');
+    const btnAdicionarTarefa = document.getElementById('btnAdicionarTarefa');
+    const modalLevantar = document.getElementById('modalLevantar');
+    const modalAdicionarTarefa = document.getElementById('modalAdicionarTarefa');
+    const closeModalLevantar = document.getElementById('closeModalLevantar');
+    const closeModalAdicionarTarefa = document.getElementById('closeModalAdicionarTarefa');
+    const formAdicionarTarefa = document.getElementById('formAdicionarTarefa');
 
-        // Função para mostrar ou esconder modais
-        function toggleModal(modal, show) {
-            modal.classList.toggle('active', show);
-        }
+    // Função para mostrar ou esconder modais
+    function toggleModal(modal, show) {
+        modal.classList.toggle('active', show);
+    }
 
-        // Lógica de Autenticação e Carregamento de Dados (em tempo real)
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // Carrega dados do utilizador em tempo real
-                const userDocRef = doc(db, "usuarios", user.uid);
-                onSnapshot(userDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const userData = docSnap.data();
-                        userNameElement.textContent = userData.nome || "Usuário";
-                        userBalanceElement.textContent = `MT ${userData.saldo.toFixed(2)}`;
-                    } else {
-                        // CORREÇÃO: O documento do utilizador não existe.
-                        // Isto pode ocorrer se as Regras de Segurança estiverem incorretas.
-                        console.error("ERRO: Documento do utilizador não encontrado no Firestore. A sair...");
-                        
-                        // Use um timeout para permitir que a mensagem seja vista antes do redirecionamento
-                        setTimeout(() => {
-                            signOut(auth).then(() => {
-                                window.location.href = 'index.html';
-                            });
-                        }, 1500); // 1.5 segundos de atraso
-                    }
-                });
+    // Lógica de Autenticação e Carregamento de Dados (em tempo real)
+    onAuthStateChanged(auth, async (user) => {
+        // Esconde o body para evitar o "piscar" da tela
+        document.body.style.display = 'none';
 
-                // Carrega as tarefas em tempo real (onSnapshot)
-                const tasksCollectionRef = collection(db, "tarefas");
-                onSnapshot(tasksCollectionRef, (querySnapshot) => {
-                    tasksListElement.innerHTML = '';
-                    if (querySnapshot.empty) {
-                        tasksListElement.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa disponível no momento.</p>';
-                        return;
-                    }
-                    querySnapshot.forEach((doc) => {
-                        const task = doc.data();
-                        const taskId = doc.id;
-                        const taskElement = document.createElement('div');
-                        taskElement.className = 'bg-gray-50 rounded-lg p-4 flex items-center justify-between shadow-sm';
-                        taskElement.innerHTML = `
-                            <div>
-                                <h4 class="font-medium text-gray-900">${task.titulo}</h4>
-                                <p class="text-sm text-gray-600">Ganhe MT ${task.recompensa.toFixed(2)}</p>
-                            </div>
-                            <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg transition-colors">
-                                Fazer
-                            </button>
-                        `;
-                        tasksListElement.appendChild(taskElement);
+        if (user) {
+            // Usuário está logado. Carrega dados do utilizador em tempo real
+            const userDocRef = doc(db, "usuarios", user.uid);
+            onSnapshot(userDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const userData = docSnap.data();
+                    userNameElement.textContent = userData.nome || "Usuário";
+                    userBalanceElement.textContent = `MT ${userData.saldo.toFixed(2)}`;
+                    document.body.style.display = 'flex';
+                } else {
+                    console.error("ERRO: Documento do utilizador não encontrado. Verifique as regras de segurança e o código de cadastro.");
+                }
+            });
 
-                        taskElement.querySelector('button').addEventListener('click', () => {
-                            alert(`Você iniciou a tarefa: "${task.titulo}".`);
-                            // Futuramente, a lógica para marcar a tarefa como concluída seria aqui
-                        });
+            // Carrega as tarefas em tempo real (onSnapshot)
+            const tasksCollectionRef = collection(db, "tarefas");
+            onSnapshot(tasksCollectionRef, (querySnapshot) => {
+                tasksListElement.innerHTML = '';
+                if (querySnapshot.empty) {
+                    tasksListElement.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa disponível no momento.</p>';
+                    return;
+                }
+                querySnapshot.forEach((doc) => {
+                    const task = doc.data();
+                    const taskId = doc.id;
+                    const taskElement = document.createElement('div');
+                    taskElement.className = 'bg-gray-50 rounded-lg p-4 flex items-center justify-between shadow-sm';
+                    taskElement.innerHTML = `
+                        <div>
+                            <h4 class="font-medium text-gray-900">${task.titulo}</h4>
+                            <p class="text-sm text-gray-600">Ganhe MT ${task.recompensa.toFixed(2)}</p>
+                        </div>
+                        <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg transition-colors">
+                            Fazer
+                        </button>
+                    `;
+                    tasksListElement.appendChild(taskElement);
+
+                    taskElement.querySelector('button').addEventListener('click', () => {
+                        alert(`Você iniciou a tarefa: "${task.titulo}".`);
+                        // Futuramente, a lógica para marcar a tarefa como concluída seria aqui
                     });
                 });
-
-            } else {
-                // Redireciona para a página inicial se não houver utilizador logado
-                window.location.href = 'index.html';
-            }
-        });
-
-        // Eventos de clique para os botões e modais
-        btnSair.addEventListener('click', () => {
-            signOut(auth).then(() => {
-                window.location.href = 'index.html';
             });
+
+        } else {
+            // Redireciona para a página inicial se não houver utilizador logado
+            window.location.href = 'index.html';
+        }
+    });
+
+    // Eventos de clique para os botões e modais
+    btnSair.addEventListener('click', () => {
+        signOut(auth).then(() => {
+            window.location.href = 'index.html';
         });
+    });
 
-        btnLevantar.addEventListener('click', () => toggleModal(modalLevantar, true));
-        closeModalLevantar.addEventListener('click', () => toggleModal(modalLevantar, false));
+    btnLevantar.addEventListener('click', () => toggleModal(modalLevantar, true));
+    closeModalLevantar.addEventListener('click', () => toggleModal(modalLevantar, false));
 
-        btnAdicionarTarefa.addEventListener('click', () => toggleModal(modalAdicionarTarefa, true));
-        closeModalAdicionarTarefa.addEventListener('click', () => toggleModal(modalAdicionarTarefa, false));
+    btnAdicionarTarefa.addEventListener('click', () => toggleModal(modalAdicionarTarefa, true));
+    closeModalAdicionarTarefa.addEventListener('click', () => toggleModal(modalAdicionarTarefa, false));
 
-        document.getElementById('formLevantar').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const valor = document.getElementById('valorLevantar').value;
-            const metodo = document.getElementById('metodoPagamento').value;
-            alert(`Ação de Levantamento: Solicitou a retirada de MT ${valor} via ${metodo}.`);
-            toggleModal(modalLevantar, false);
-        });
+    document.getElementById('formLevantar').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const valor = document.getElementById('valorLevantar').value;
+        const metodo = document.getElementById('metodoPagamento').value;
+        alert(`Ação de Levantamento: Solicitou a retirada de MT ${valor} via ${metodo}.`);
+        toggleModal(modalLevantar, false);
+    });
 
-        // Lógica para adicionar uma nova tarefa ao Firebase
-        formAdicionarTarefa.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const titulo = document.getElementById('tituloTarefa').value;
-            const recompensa = parseFloat(document.getElementById('recompensaTarefa').value);
+    // Lógica para adicionar uma nova tarefa ao Firebase
+    formAdicionarTarefa.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const titulo = document.getElementById('tituloTarefa').value;
+        const recompensa = parseFloat(document.getElementById('recompensaTarefa').value);
 
-            if (!titulo || isNaN(recompensa) || recompensa <= 0) {
-                alert('Por favor, preencha todos os campos corretamente.');
-                return;
-            }
+        if (!titulo || isNaN(recompensa) || recompensa <= 0) {
+            alert('Por favor, preencha todos os campos corretamente.');
+            return;
+        }
 
-            try {
-                await addDoc(collection(db, "tarefas"), {
-                    titulo: titulo,
-                    recompensa: recompensa
-                });
-                alert('Tarefa adicionada com sucesso!');
-                formAdicionarTarefa.reset();
-                toggleModal(modalAdicionarTarefa, false);
-            } catch (e) {
-                alert('Erro ao adicionar tarefa: ' + e.message);
-            }
-        });
-
-    </script>
-</body>
-</html>
+        try {
+            await addDoc(collection(db, "tarefas"), {
+                titulo: titulo,
+                recompensa: recompensa
+            });
+            alert('Tarefa adicionada com sucesso!');
+            formAdicionarTarefa.reset();
+            toggleModal(modalAdicionarTarefa, false);
+        } catch (e) {
+            alert('Erro ao adicionar tarefa: ' + e.message);
+        }
+    });
+</script>
