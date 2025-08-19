@@ -1,311 +1,485 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Usuário - ClickMoz</title>
-    <!-- Importa o Tailwind CSS para um design responsivo -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Importa a biblioteca de ícones Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s ease-in-out;
-            opacity: 0;
-        }
-        .modal.active {
-            display: flex;
-            opacity: 1;
-        }
-        .modal-content {
-            background-color: #fff;
-            padding: 2.5rem;
-            border-radius: 12px;
-            max-width: 420px;
-            width: 90%;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            position: relative;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease-in-out;
-        }
-        .modal.active .modal-content {
-            transform: translateY(0);
-        }
-        .close-btn {
-            position: absolute;
-            top: 15px; right: 20px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #aaa;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        .close-btn:hover {
-            color: #333;
-        }
-        .loading-spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid #fff;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .loading-text {
-            color: #888;
-            font-style: italic;
-        }
-        /* Para o formulário de adicionar tarefas */
-        input[type="text"], input[type="number"] {
-            padding: 0.9rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        input[type="text"]:focus, input[type="number"]:focus {
-            outline: none;
-            border-color: #ffcc00;
-            box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.4);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel do Usuário - ClickMoz</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    .modal { display:none; position:fixed; z-index:1000; inset:0; background:rgba(0,0,0,.6); backdrop-filter: blur(5px); justify-content:center; align-items:center; transition: all .3s ease-in-out; opacity:0; }
+    .modal.active { display:flex; opacity:1; }
+    .modal-content { background:#fff; padding:2rem; border-radius:12px; width:90%; max-width:480px; box-shadow:0 10px 25px rgba(0,0,0,.2); position:relative; transform: translateY(-12px); transition: transform .3s; }
+    .modal.active .modal-content { transform: translateY(0); }
+    .close-btn { position:absolute; top:14px; right:18px; font-size:1.5rem; color:#aaa; cursor:pointer; }
+    .close-btn:hover { color:#333; }
+    .loading-spinner { border:4px solid rgba(0,0,0,.15); border-top:4px solid #111; border-radius:50%; width:28px; height:28px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
+    input[type="text"], input[type="number"], textarea, select { padding:.8rem; border:1px solid #e5e7eb; border-radius:10px; transition: border-color .2s, box-shadow .2s; }
+    input:focus, textarea:focus, select:focus { outline:none; border-color:#ffcc00; box-shadow:0 0 0 3px rgba(255,204,0,.35); }
+  </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
 
-    <!-- Header do Painel -->
-    <header class="bg-white shadow-md rounded-xl p-4 w-full max-w-2xl mb-6 flex justify-between items-center">
-        <h1 class="text-xl md:text-2xl font-bold text-gray-800">
-            <i class="fas fa-user-circle text-gray-600 mr-2"></i>Bem-vindo, <span id="userName">Carregando...</span>!
-        </h1>
-        <button id="btnSair" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition-colors">
-            Sair
-        </button>
-    </header>
+  <!-- Tela de Loading Inicial -->
+  <div id="loadingScreen" class="fixed inset-0 flex items-center justify-center bg-gray-100 z-[999]">
+    <div class="loading-spinner"></div>
+  </div>
 
-    <!-- Seção de Saldo -->
-    <section class="bg-yellow-400 text-gray-900 shadow-md rounded-xl p-6 w-full max-w-2xl mb-6 text-center">
-        <p class="text-sm font-medium">Seu Saldo Atual</p>
-        <h2 id="userBalance" class="text-4xl md:text-5xl font-extrabold mt-1">
-            <div class="loading-spinner mx-auto w-10 h-10 border-white border-t-yellow-600"></div>
-        </h2>
-    </section>
+  <!-- Banner de Erro -->
+  <div id="errorBanner" class="hidden w-full max-w-3xl mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 p-4">
+    <p id="errorMessage" class="text-sm"></p>
+  </div>
 
-    <!-- Botões de Ação -->
-    <section class="flex flex-col md:flex-row gap-4 w-full max-w-2xl mb-6">
-        <button id="btnLevantar" class="flex-1 bg-white hover:bg-gray-50 transition-colors shadow-md rounded-xl p-6 flex flex-col items-center">
-            <i class="fas fa-wallet text-4xl text-yellow-500 mb-2"></i>
-            <span class="font-semibold text-lg">Levantar Dinheiro</span>
-            <p class="text-sm text-gray-500">Retire seus ganhos</p>
-        </button>
-        <button id="btnAdicionarTarefa" class="flex-1 bg-white hover:bg-gray-50 transition-colors shadow-md rounded-xl p-6 flex flex-col items-center">
-            <i class="fas fa-plus-circle text-4xl text-yellow-500 mb-2"></i>
-            <span class="font-semibold text-lg">Adicionar Tarefa</span>
-            <p class="text-sm text-gray-500">Crie novas tarefas</p>
-        </button>
-    </section>
+  <!-- Header -->
+  <header class="bg-white shadow-md rounded-xl p-4 w-full max-w-3xl mb-6 flex justify-between items-center">
+    <h1 class="text-xl md:text-2xl font-bold text-gray-800">
+      <i class="fas fa-user-circle text-gray-600 mr-2"></i>
+      Bem-vindo, <span id="userName">Carregando...</span>!
+    </h1>
+    <button id="btnSair" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition-colors">
+      Sair
+    </button>
+  </header>
 
-    <!-- Seção de Tarefas -->
-    <section class="bg-white shadow-md rounded-xl p-6 w-full max-w-2xl">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Tarefas Disponíveis</h3>
-        <div id="tasksList" class="space-y-4">
-            <p class="text-center loading-text">Carregando tarefas...</p>
-        </div>
-    </section>
+  <!-- Saldo -->
+  <section class="bg-yellow-400 text-gray-900 shadow-md rounded-xl p-6 w-full max-w-3xl mb-6 text-center">
+    <p class="text-sm font-medium">Seu Saldo Atual</p>
+    <h2 id="userBalance" class="text-4xl md:text-5xl font-extrabold mt-1 flex items-center justify-center gap-3">
+      <span class="loading-spinner w-8 h-8 border-white border-t-yellow-600"></span>
+    </h2>
+    <p id="userStatus" class="text-sm mt-2 opacity-80"></p>
+  </section>
 
-    <!-- MODAL DE LEVANTAMENTO -->
-    <div id="modalLevantar" class="modal">
-        <div class="modal-content">
-            <span id="closeModalLevantar" class="close-btn">&times;</span>
-            <h2 class="text-2xl font-bold text-center mb-6">Levantar Dinheiro</h2>
-            <form id="formLevantar" class="flex flex-col gap-4">
-                <div>
-                    <label for="valorLevantar" class="block text-sm font-medium text-gray-700 mb-1">Valor a Levantar (MT)</label>
-                    <input type="number" id="valorLevantar" name="valorLevantar" min="1" step="0.01" required class="w-full">
-                </div>
-                <div>
-                    <label for="metodoPagamento" class="block text-sm font-medium text-gray-700 mb-1">Método de Pagamento</label>
-                    <select id="metodoPagamento" name="metodoPagamento" required class="w-full">
-                        <option value="mpesa">M-Pesa</option>
-                        <option value="emola">e-Mola</option>
-                        <option value="banco">Conta Bancária</option>
-                    </select>
-                </div>
-                <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl transition-colors">Confirmar Levantamento</button>
-            </form>
-        </div>
+  <!-- Ações Rápidas -->
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl mb-6">
+    <button id="btnLevantar" class="bg-white hover:bg-gray-50 transition-colors shadow-md rounded-xl p-6 flex flex-col items-center">
+      <i class="fas fa-wallet text-4xl text-yellow-500 mb-2"></i>
+      <span class="font-semibold text-lg">Levantar Dinheiro</span>
+      <p class="text-sm text-gray-500">Retire seus ganhos</p>
+    </button>
+    <button id="btnAdicionarTarefa" class="bg-white hover:bg-gray-50 transition-colors shadow-md rounded-xl p-6 flex flex-col items-center">
+      <i class="fas fa-plus-circle text-4xl text-yellow-500 mb-2"></i>
+      <span class="font-semibold text-lg">Adicionar Tarefa</span>
+      <p class="text-sm text-gray-500">Crie novas tarefas</p>
+    </button>
+  </section>
+
+  <!-- Tarefas Disponíveis -->
+  <section class="bg-white shadow-md rounded-xl p-6 w-full max-w-3xl mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xl font-semibold text-gray-800">Tarefas Disponíveis</h3>
+      <span id="tasksCount" class="text-sm text-gray-500"></span>
+    </div>
+    <div id="tasksList" class="space-y-4">
+      <p class="text-center text-gray-500 italic">Carregando tarefas...</p>
+    </div>
+  </section>
+
+  <!-- Grid de Informações Extras -->
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl mb-6">
+    <!-- Transações -->
+    <div class="bg-white shadow-md rounded-xl p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="text-lg font-semibold text-gray-800"><i class="fa-solid fa-money-check mr-2 text-yellow-500"></i>Transações Recentes</h4>
+        <span id="txCount" class="text-sm text-gray-500"></span>
+      </div>
+      <div id="txList" class="space-y-3">
+        <p class="text-sm text-gray-500 italic">Carregando...</p>
+      </div>
     </div>
 
-    <!-- MODAL DE ADICIONAR TAREFA -->
-    <div id="modalAdicionarTarefa" class="modal">
-        <div class="modal-content">
-            <span id="closeModalAdicionarTarefa" class="close-btn">&times;</span>
-            <h2 class="text-2xl font-bold text-center mb-6">Adicionar Nova Tarefa</h2>
-            <form id="formAdicionarTarefa" class="flex flex-col gap-4">
-                <div>
-                    <label for="tituloTarefa" class="block text-sm font-medium text-gray-700 mb-1">Título da Tarefa</label>
-                    <input type="text" id="tituloTarefa" name="tituloTarefa" placeholder="Ex: Responder inquérito" required class="w-full">
-                </div>
-                <div>
-                    <label for="recompensaTarefa" class="block text-sm font-medium text-gray-700 mb-1">Recompensa (MT)</label>
-                    <input type="number" id="recompensaTarefa" name="recompensaTarefa" min="0.01" step="0.01" required class="w-full">
-                </div>
-                <button type="submit" id="btnSubmitAdicionarTarefa" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl transition-colors flex items-center justify-center">
-                    Adicionar Tarefa
-                </button>
-            </form>
-        </div>
+    <!-- Notificações -->
+    <div class="bg-white shadow-md rounded-xl p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="text-lg font-semibold text-gray-800"><i class="fa-solid fa-bell mr-2 text-yellow-500"></i>Notificações</h4>
+        <span id="notifCount" class="text-sm text-gray-500"></span>
+      </div>
+      <div id="notifList" class="space-y-3">
+        <p class="text-sm text-gray-500 italic">Carregando...</p>
+      </div>
     </div>
 
-    <!-- Firebase Imports -->
-    <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-    <!-- O novo ficheiro de configuração -->
-    <script type="module" src="./firebase-config.js"></script>
+    <!-- Referências -->
+    <div class="bg-white shadow-md rounded-xl p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="text-lg font-semibold text-gray-800"><i class="fa-solid fa-user-group mr-2 text-yellow-500"></i>Referências</h4>
+        <span id="refCount" class="text-sm text-gray-500"></span>
+      </div>
+      <div id="refList" class="space-y-3">
+        <p class="text-sm text-gray-500 italic">Carregando...</p>
+      </div>
+    </div>
 
-<script type="module">
+    <!-- Suporte -->
+    <div class="bg-white shadow-md rounded-xl p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="text-lg font-semibold text-gray-800"><i class="fa-solid fa-headset mr-2 text-yellow-500"></i>Suporte</h4>
+        <button id="btnAbrirTicket" class="text-sm font-semibold text-yellow-600 hover:text-yellow-700">Abrir Ticket</button>
+      </div>
+      <div id="ticketList" class="space-y-3">
+        <p class="text-sm text-gray-500 italic">Carregando...</p>
+      </div>
+    </div>
+
+    <!-- Levantamentos -->
+    <div class="bg-white shadow-md rounded-xl p-6 md:col-span-2">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="text-lg font-semibold text-gray-800"><i class="fa-solid fa-arrow-up-right-dots mr-2 text-yellow-500"></i>Pedidos de Levantamento</h4>
+        <span id="levCount" class="text-sm text-gray-500"></span>
+      </div>
+      <div id="levList" class="space-y-3">
+        <p class="text-sm text-gray-500 italic">Carregando...</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="text-center text-xs text-gray-500 py-8">© 2025 ClickMoz. Todos os direitos reservados.</footer>
+
+  <!-- MODAL: Levantar -->
+  <div id="modalLevantar" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <span id="closeModalLevantar" class="close-btn">&times;</span>
+      <h2 class="text-2xl font-bold text-center mb-6">Levantar Dinheiro</h2>
+      <form id="formLevantar" class="flex flex-col gap-4">
+        <div>
+          <label for="valorLevantar" class="block text-sm font-medium text-gray-700 mb-1">Valor (MT)</label>
+          <input type="number" id="valorLevantar" min="1" step="0.01" required class="w-full" />
+        </div>
+        <div>
+          <label for="metodoPagamento" class="block text-sm font-medium text-gray-700 mb-1">Método</label>
+          <select id="metodoPagamento" required class="w-full">
+            <option value="mpesa">M-Pesa</option>
+            <option value="emola">e-Mola</option>
+            <option value="banco">Conta Bancária</option>
+          </select>
+        </div>
+        <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl transition-colors">Confirmar Pedido</button>
+      </form>
+      <p class="text-xs text-gray-500 mt-3">* Seu saldo não é alterado no cliente. A equipe revisará o pedido.</p>
+    </div>
+  </div>
+
+  <!-- MODAL: Adicionar Tarefa -->
+  <div id="modalAdicionarTarefa" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <span id="closeModalAdicionarTarefa" class="close-btn">&times;</span>
+      <h2 class="text-2xl font-bold text-center mb-6">Adicionar Nova Tarefa</h2>
+      <form id="formAdicionarTarefa" class="flex flex-col gap-4">
+        <div>
+          <label for="tituloTarefa" class="block text-sm font-medium text-gray-700 mb-1">Título</label>
+          <input type="text" id="tituloTarefa" placeholder="Ex: Responder inquérito" required class="w-full" />
+        </div>
+        <div>
+          <label for="recompensaTarefa" class="block text-sm font-medium text-gray-700 mb-1">Recompensa (MT)</label>
+          <input type="number" id="recompensaTarefa" min="0.01" step="0.01" required class="w-full" />
+        </div>
+        <button type="submit" id="btnSubmitAdicionarTarefa" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl transition-colors flex items-center justify-center">Adicionar</button>
+      </form>
+      <p class="text-xs text-gray-500 mt-3">* Tarefas novas ficam pendentes de aprovação.</p>
+    </div>
+  </div>
+
+  <!-- MODAL: Abrir Ticket de Suporte -->
+  <div id="modalTicket" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <span id="closeModalTicket" class="close-btn">&times;</span>
+      <h2 class="text-2xl font-bold text-center mb-6">Abrir Ticket de Suporte</h2>
+      <form id="formTicket" class="flex flex-col gap-4">
+        <div>
+          <label for="assuntoTicket" class="block text-sm font-medium text-gray-700 mb-1">Assunto</label>
+          <input id="assuntoTicket" type="text" required placeholder="Ex: Dúvida sobre pagamento" />
+        </div>
+        <div>
+          <label for="mensagemTicket" class="block text-sm font-medium text-gray-700 mb-1">Mensagem</label>
+          <textarea id="mensagemTicket" rows="4" required placeholder="Descreva seu problema"></textarea>
+        </div>
+        <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl">Enviar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase Config (arquivo separado) -->
+  <script type="module" src="./firebase-config.js"></script>
+
+  <!-- App -->
+  <script type="module">
     import { firebaseConfig } from './firebase-config.js';
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, doc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { 
+      getFirestore, doc, getDoc, onSnapshot, collection, addDoc, query, where, orderBy, limit, serverTimestamp 
+    } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-    // Inicializa o Firebase com a sua configuração
+    // Inicializa Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const userNameElement = document.getElementById('userName');
-    const userBalanceElement = document.getElementById('userBalance');
-    const tasksListElement = document.getElementById('tasksList');
+    // UI Elements
+    const loadingScreen = document.getElementById('loadingScreen');
+    const errorBanner = document.getElementById('errorBanner');
+    const errorMessage = document.getElementById('errorMessage');
+
+    const userNameEl = document.getElementById('userName');
+    const userBalanceEl = document.getElementById('userBalance');
+    const userStatusEl = document.getElementById('userStatus');
+
+    const tasksListEl = document.getElementById('tasksList');
+    const tasksCountEl = document.getElementById('tasksCount');
+
+    const txListEl = document.getElementById('txList');
+    const txCountEl = document.getElementById('txCount');
+
+    const notifListEl = document.getElementById('notifList');
+    const notifCountEl = document.getElementById('notifCount');
+
+    const refListEl = document.getElementById('refList');
+    const refCountEl = document.getElementById('refCount');
+
+    const levListEl = document.getElementById('levList');
+    const levCountEl = document.getElementById('levCount');
+
+    const ticketListEl = document.getElementById('ticketList');
+
     const btnSair = document.getElementById('btnSair');
     const btnLevantar = document.getElementById('btnLevantar');
     const btnAdicionarTarefa = document.getElementById('btnAdicionarTarefa');
+    const btnAbrirTicket = document.getElementById('btnAbrirTicket');
+
     const modalLevantar = document.getElementById('modalLevantar');
     const modalAdicionarTarefa = document.getElementById('modalAdicionarTarefa');
+    const modalTicket = document.getElementById('modalTicket');
     const closeModalLevantar = document.getElementById('closeModalLevantar');
     const closeModalAdicionarTarefa = document.getElementById('closeModalAdicionarTarefa');
+    const closeModalTicket = document.getElementById('closeModalTicket');
+
+    const formLevantar = document.getElementById('formLevantar');
     const formAdicionarTarefa = document.getElementById('formAdicionarTarefa');
+    const formTicket = document.getElementById('formTicket');
 
-    // Função para mostrar ou esconder modais
-    function toggleModal(modal, show) {
-        modal.classList.toggle('active', show);
+    function showError(msg) {
+      errorMessage.textContent = msg;
+      errorBanner.classList.remove('hidden');
     }
+    function hideError(){ errorBanner.classList.add('hidden'); errorMessage.textContent = ''; }
 
-    // Lógica de Autenticação e Carregamento de Dados (em tempo real)
+    function toggleModal(modal, show){ modal.classList.toggle('active', show); }
+
+    const fmt = new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' });
+
+    // ======== Auth Guard + Carregamento ========
     onAuthStateChanged(auth, async (user) => {
-        // Esconde o body para evitar o "piscar" da tela
-        document.body.style.display = 'none';
+      try {
+        if (!user) { window.location.href = 'index.html'; return; }
 
-        if (user) {
-            // Usuário está logado. Carrega dados do utilizador em tempo real
-            const userDocRef = doc(db, "usuarios", user.uid);
-            onSnapshot(userDocRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const userData = docSnap.data();
-                    userNameElement.textContent = userData.nome || "Usuário";
-                    userBalanceElement.textContent = `MT ${userData.saldo.toFixed(2)}`;
-                    document.body.style.display = 'flex';
-                } else {
-                    console.error("ERRO: Documento do utilizador não encontrado. Verifique as regras de segurança e o código de cadastro.");
-                }
+        // Perfil do usuário (coleção: "usuario")
+        const userRef = doc(db, 'usuario', user.uid);
+        onSnapshot(userRef, (snap) => {
+          if (!snap.exists()) { showError("Documento do utilizador não encontrado em 'usuario'."); return; }
+          const data = snap.data();
+          userNameEl.textContent = data.nome || 'Usuário';
+          userBalanceEl.textContent = fmt.format(Number(data.saldo || 0));
+          userStatusEl.textContent = data.status ? `Status: ${data.status}` : '';
+          loadingScreen.style.display = 'none';
+        }, (err) => showError('Erro ao ler perfil: ' + err.message));
+
+        // Tarefas aprovadas (coleção: tasks, where approved == true)
+        const tasksQ = query(collection(db, 'tasks'), where('approved', '==', true), orderBy('createdAt', 'desc'), limit(20));
+        onSnapshot(tasksQ, (qs) => {
+          tasksListEl.innerHTML = '';
+          tasksCountEl.textContent = `${qs.size} tarefas`;
+          if (qs.empty) { tasksListEl.innerHTML = '<p class="text-center text-gray-500 italic">Nenhuma tarefa disponível.</p>'; return; }
+          qs.forEach((d) => {
+            const t = d.data();
+            const el = document.createElement('div');
+            el.className = 'bg-gray-50 rounded-lg p-4 flex items-center justify-between shadow-sm';
+            el.innerHTML = `
+              <div>
+                <h4 class="font-medium text-gray-900">${t.titulo || 'Tarefa'}</h4>
+                <p class="text-sm text-gray-600">Ganhe ${fmt.format(Number(t.recompensa || 0))}</p>
+              </div>
+              <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg transition-colors">Fazer</button>
+            `;
+            el.querySelector('button').addEventListener('click', () => {
+              alert(`Você iniciou a tarefa: "${t.titulo || 'Tarefa'}".`);
+              // Aqui futuramente: registrar início/conclusão da tarefa
             });
+            tasksListEl.appendChild(el);
+          });
+        }, (err) => showError('Erro ao carregar tarefas: ' + err.message));
 
-            // Carrega as tarefas em tempo real (onSnapshot)
-            const tasksCollectionRef = collection(db, "tarefas");
-            onSnapshot(tasksCollectionRef, (querySnapshot) => {
-                tasksListElement.innerHTML = '';
-                if (querySnapshot.empty) {
-                    tasksListElement.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa disponível no momento.</p>';
-                    return;
-                }
-                querySnapshot.forEach((doc) => {
-                    const task = doc.data();
-                    const taskId = doc.id;
-                    const taskElement = document.createElement('div');
-                    taskElement.className = 'bg-gray-50 rounded-lg p-4 flex items-center justify-between shadow-sm';
-                    taskElement.innerHTML = `
-                        <div>
-                            <h4 class="font-medium text-gray-900">${task.titulo}</h4>
-                            <p class="text-sm text-gray-600">Ganhe MT ${task.recompensa.toFixed(2)}</p>
-                        </div>
-                        <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg transition-colors">
-                            Fazer
-                        </button>
-                    `;
-                    tasksListElement.appendChild(taskElement);
+        // Transações do usuário (transactions where userId == uid)
+        const txQ = query(collection(db, 'transactions'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'), limit(10));
+        onSnapshot(txQ, (qs) => {
+          txListEl.innerHTML = '';
+          txCountEl.textContent = `${qs.size} itens`;
+          if (qs.empty) { txListEl.innerHTML = '<p class="text-sm text-gray-500 italic">Sem transações.</p>'; return; }
+          qs.forEach((d)=>{
+            const x = d.data();
+            const li = document.createElement('div');
+            li.className = 'flex items-center justify-between bg-gray-50 rounded-lg p-3';
+            const tipo = x.type || 'movimento';
+            const valor = fmt.format(Number(x.amount || 0));
+            const quando = (x.createdAt?.toDate ? x.createdAt.toDate() : new Date(x.createdAt || Date.now())).toLocaleString('pt-PT');
+            li.innerHTML = `<span class="text-sm text-gray-700">${tipo}</span><span class="text-sm font-semibold">${valor}</span><span class="text-xs text-gray-500">${quando}</span>`;
+            txListEl.appendChild(li);
+          });
+        }, (err)=> showError('Erro ao carregar transações: ' + err.message));
 
-                    taskElement.querySelector('button').addEventListener('click', () => {
-                        alert(`Você iniciou a tarefa: "${task.titulo}".`);
-                        // Futuramente, a lógica para marcar a tarefa como concluída seria aqui
-                    });
-                });
-            });
+        // Notificações do usuário (notifications where userId == uid)
+        const notifQ = query(collection(db, 'notifications'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'), limit(10));
+        onSnapshot(notifQ, (qs)=>{
+          notifListEl.innerHTML='';
+          notifCountEl.textContent = `${qs.size} avisos`;
+          if (qs.empty) { notifListEl.innerHTML = '<p class="text-sm text-gray-500 italic">Sem notificações.</p>'; return; }
+          qs.forEach((d)=>{
+            const n = d.data();
+            const row = document.createElement('div');
+            row.className = 'bg-gray-50 rounded-lg p-3';
+            row.innerHTML = `<p class="text-sm text-gray-800 font-medium">${n.title || 'Notificação'}</p><p class="text-xs text-gray-600">${n.body || ''}</p>`;
+            notifListEl.appendChild(row);
+          });
+        }, (err)=> showError('Erro ao carregar notificações: ' + err.message));
 
-        } else {
-            // Redireciona para a página inicial se não houver utilizador logado
-            window.location.href = 'index.html';
-        }
+        // Referências (referrals where referrerId == uid)
+        const refQ = query(collection(db, 'referrals'), where('referrerId', '==', user.uid), orderBy('createdAt', 'desc'), limit(10));
+        onSnapshot(refQ, (qs)=>{
+          refListEl.innerHTML='';
+          refCountEl.textContent = `${qs.size} referências`;
+          if (qs.empty) { refListEl.innerHTML = '<p class="text-sm text-gray-500 italic">Sem referências ainda.</p>'; return; }
+          qs.forEach((d)=>{
+            const r = d.data();
+            const item = document.createElement('div');
+            item.className = 'bg-gray-50 rounded-lg p-3 flex justify-between text-sm';
+            item.innerHTML = `<span>${r.friendPhone || r.friendEmail || 'Indicado'}</span><span class="text-gray-500">${(r.createdAt?.toDate? r.createdAt.toDate(): new Date()).toLocaleDateString('pt-PT')}</span>`;
+            refListEl.appendChild(item);
+          });
+        }, (err)=> showError('Erro ao carregar referências: ' + err.message));
+
+        // Tickets de suporte (support_tickets where userId == uid)
+        const ticketQ = query(collection(db, 'support_tickets'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'), limit(10));
+        onSnapshot(ticketQ, (qs)=>{
+          ticketListEl.innerHTML='';
+          if (qs.empty) { ticketListEl.innerHTML = '<p class="text-sm text-gray-500 italic">Sem tickets.</p>'; return; }
+          qs.forEach((d)=>{
+            const t = d.data();
+            const item = document.createElement('div');
+            item.className = 'bg-gray-50 rounded-lg p-3 text-sm flex justify-between';
+            item.innerHTML = `<span class="font-medium">${t.subject || 'Ticket'}</span><span class="text-gray-600">${t.status || 'aberto'}</span>`;
+            ticketListEl.appendChild(item);
+          });
+        }, (err)=> showError('Erro ao carregar tickets: ' + err.message));
+
+        // Levantamentos (levantamentos where userId == uid)
+        const levQ = query(collection(db, 'levantamentos'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'), limit(10));
+        onSnapshot(levQ, (qs)=>{
+          levListEl.innerHTML='';
+          levCountEl.textContent = `${qs.size} pedidos`;
+          if (qs.empty) { levListEl.innerHTML = '<p class="text-sm text-gray-500 italic">Sem pedidos.</p>'; return; }
+          qs.forEach((d)=>{
+            const L = d.data();
+            const item = document.createElement('div');
+            item.className = 'bg-gray-50 rounded-lg p-3 text-sm grid grid-cols-3 gap-2';
+            const quando = (L.createdAt?.toDate ? L.createdAt.toDate() : new Date()).toLocaleString('pt-PT');
+            item.innerHTML = `<span>${fmt.format(Number(L.amount || 0))}</span><span class="capitalize">${L.method || '-'}</span><span class="text-gray-600">${L.status || 'pendente'} • ${quando}</span>`;
+            levListEl.appendChild(item);
+          });
+        }, (err)=> showError('Erro ao carregar levantamentos: ' + err.message));
+
+      } catch (e) {
+        showError('Erro inesperado: ' + e.message);
+      }
     });
 
-    // Eventos de clique para os botões e modais
-    btnSair.addEventListener('click', () => {
-        signOut(auth).then(() => {
-            window.location.href = 'index.html';
-        });
-    });
+    // ======== Eventos UI ========
+    btnSair.addEventListener('click', async ()=>{ await signOut(auth); window.location.href = 'index.html'; });
 
-    btnLevantar.addEventListener('click', () => toggleModal(modalLevantar, true));
-    closeModalLevantar.addEventListener('click', () => toggleModal(modalLevantar, false));
+    btnLevantar.addEventListener('click', ()=> toggleModal(modalLevantar, true));
+    closeModalLevantar.addEventListener('click', ()=> toggleModal(modalLevantar, false));
 
-    btnAdicionarTarefa.addEventListener('click', () => toggleModal(modalAdicionarTarefa, true));
-    closeModalAdicionarTarefa.addEventListener('click', () => toggleModal(modalAdicionarTarefa, false));
+    btnAdicionarTarefa.addEventListener('click', ()=> toggleModal(modalAdicionarTarefa, true));
+    closeModalAdicionarTarefa.addEventListener('click', ()=> toggleModal(modalAdicionarTarefa, false));
 
-    document.getElementById('formLevantar').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const valor = document.getElementById('valorLevantar').value;
+    btnAbrirTicket.addEventListener('click', ()=> toggleModal(modalTicket, true));
+    closeModalTicket.addEventListener('click', ()=> toggleModal(modalTicket, false));
+
+    // Pedido de Levantamento (cria doc em 'levantamentos')
+    formLevantar.addEventListener('submit', async (e)=>{
+      e.preventDefault(); hideError();
+      try {
+        const user = auth.currentUser; if(!user) return showError('Sessão expirada. Faça login novamente.');
+        const valor = parseFloat(document.getElementById('valorLevantar').value);
         const metodo = document.getElementById('metodoPagamento').value;
-        alert(`Ação de Levantamento: Solicitou a retirada de MT ${valor} via ${metodo}.`);
+        if (!valor || valor <= 0) return showError('Informe um valor válido.');
+
+        // Valida saldo atual (leitura pontual)
+        const snap = await getDoc(doc(db, 'usuario', user.uid));
+        const saldoAtual = Number(snap.data()?.saldo || 0);
+        if (valor > saldoAtual) { showError('Saldo insuficiente para este levantamento.'); return; }
+
+        await addDoc(collection(db, 'levantamentos'), {
+          userId: user.uid,
+          amount: valor,
+          method: metodo,
+          status: 'pendente',
+          createdAt: serverTimestamp()
+        });
         toggleModal(modalLevantar, false);
+        alert('Pedido de levantamento enviado!');
+        e.target.reset();
+      } catch (err) { showError('Erro ao enviar pedido: ' + err.message); }
     });
 
-    // Lógica para adicionar uma nova tarefa ao Firebase
-    formAdicionarTarefa.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const titulo = document.getElementById('tituloTarefa').value;
+    // Adicionar Tarefa (cria doc em 'tasks' como pendente)
+    formAdicionarTarefa.addEventListener('submit', async (e)=>{
+      e.preventDefault(); hideError();
+      try {
+        const user = auth.currentUser; if(!user) return showError('Sessão expirada. Faça login novamente.');
+        const titulo = document.getElementById('tituloTarefa').value.trim();
         const recompensa = parseFloat(document.getElementById('recompensaTarefa').value);
+        if (!titulo || !recompensa || recompensa <= 0) return showError('Preencha título e recompensa válidos.');
 
-        if (!titulo || isNaN(recompensa) || recompensa <= 0) {
-            alert('Por favor, preencha todos os campos corretamente.');
-            return;
-        }
-
-        try {
-            await addDoc(collection(db, "tarefas"), {
-                titulo: titulo,
-                recompensa: recompensa
-            });
-            alert('Tarefa adicionada com sucesso!');
-            formAdicionarTarefa.reset();
-            toggleModal(modalAdicionarTarefa, false);
-        } catch (e) {
-            alert('Erro ao adicionar tarefa: ' + e.message);
-        }
+        await addDoc(collection(db, 'tasks'), {
+          titulo,
+          recompensa,
+          approved: false,
+          ownerId: user.uid,
+          createdAt: serverTimestamp()
+        });
+        toggleModal(modalAdicionarTarefa, false);
+        alert('Tarefa enviada para aprovação.');
+        e.target.reset();
+      } catch (err) { showError('Erro ao adicionar tarefa: ' + err.message); }
     });
-</script>
+
+    // Abrir ticket de suporte (cria doc em 'support_tickets')
+    formTicket.addEventListener('submit', async (e)=>{
+      e.preventDefault(); hideError();
+      try {
+        const user = auth.currentUser; if(!user) return showError('Sessão expirada. Faça login novamente.');
+        const subject = document.getElementById('assuntoTicket').value.trim();
+        const message = document.getElementById('mensagemTicket').value.trim();
+        if (!subject || !message) return showError('Preencha o assunto e a mensagem.');
+
+        await addDoc(collection(db, 'support_tickets'), {
+          userId: user.uid,
+          subject,
+          message,
+          status: 'aberto',
+          createdAt: serverTimestamp()
+        });
+        toggleModal(modalTicket, false);
+        alert('Ticket enviado!');
+        e.target.reset();
+      } catch (err) { showError('Erro ao abrir ticket: ' + err.message); }
+    });
+  </script>
+</body>
+</html>
+
+
