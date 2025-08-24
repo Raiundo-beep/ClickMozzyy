@@ -1,256 +1,222 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Usuário - ClickMoz</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); justify-content: center; align-items: center; transition: all 0.3s ease-in-out; opacity: 0; }
-        .modal.active { display: flex; opacity: 1; }
-        .modal-content { background-color: #fff; padding: 2.5rem; border-radius: 12px; max-width: 420px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; transform: translateY(-20px); transition: transform 0.3s ease-in-out; }
-        .modal.active .modal-content { transform: translateY(0); }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; font-weight: bold; color: #aaa; cursor: pointer; transition: color 0.2s; }
-        .close-btn:hover { color: #333; }
-        .loading-spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid #fff; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .loading-text { color: #888; font-style: italic; }
-        input[type="text"], input[type="number"], select { padding: 0.9rem; border: 1px solid #ddd; border-radius: 8px; transition: border-color 0.2s, box-shadow 0.2s; }
-        input[type="text"]:focus, input[type="number"]:focus, select:focus { outline: none; border-color: #ffcc00; box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.4); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel - ClickMoz</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+    body { font-family: 'Inter', sans-serif; background: #f4f4f4; color: #333; }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); justify-content: center; align-items: center;
+        transition: all 0.3s ease-in-out; opacity: 0; }
+    .modal.active { display: flex; opacity: 1; }
+    .modal-content { background-color: #fff; padding: 2.5rem; border-radius: 12px; max-width: 420px; width: 90%;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; transform: translateY(-20px);
+        transition: transform 0.3s ease-in-out; }
+    .modal.active .modal-content { transform: translateY(0); }
+    .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; font-weight: bold; color: #aaa;
+        cursor: pointer; transition: color 0.2s; }
+    .close-btn:hover { color: #333; }
+    input[type="text"], input[type="password"], input[type="tel"], input[type="number"] {
+        padding: 0.9rem; border: 1px solid #ddd; border-radius: 8px; transition: border-color 0.2s, box-shadow 0.2s; }
+    input:focus { outline: none; border-color: #ffcc00; box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.4); }
+    .loading-spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid #fff; border-radius: 50%;
+        width: 24px; height: 24px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+<body>
 
-    <!-- Header -->
-    <header class="bg-white shadow-md rounded-xl p-4 w-full max-w-4xl mb-6 flex justify-between items-center">
-        <h1 class="text-xl md:text-2xl font-bold text-gray-800">
-            <i class="fas fa-user-circle text-gray-600 mr-2"></i>Bem-vindo, <span id="userName">Carregando...</span>!
-        </h1>
-        <button id="btnSair" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition-colors">Sair</button>
-    </header>
+<header class="bg-yellow-400 text-black py-4 text-center shadow-md">
+    <h1 class="text-3xl font-extrabold"><i class="fas fa-hand-holding-usd mr-2"></i>ClickMoz</h1>
+    <p class="text-sm mt-1">Painel do Usuário</p>
+</header>
 
-    <!-- Saldo -->
-    <section class="bg-yellow-400 text-gray-900 shadow-md rounded-xl p-6 w-full max-w-4xl mb-6 text-center">
-        <p class="text-sm font-medium">Seu Saldo Atual</p>
-        <h2 id="userBalance" class="text-4xl md:text-5xl font-extrabold mt-1">
-            <div class="loading-spinner mx-auto w-10 h-10 border-white border-t-yellow-600"></div>
-        </h2>
-    </section>
-
-    <!-- Botões -->
-    <section class="flex flex-col md:flex-row gap-4 w-full max-w-4xl mb-6">
-        <button id="btnLevantar" class="flex-1 bg-white hover:bg-gray-50 transition-colors shadow-md rounded-xl p-6 flex flex-col items-center">
-            <i class="fas fa-wallet text-4xl text-yellow-500 mb-2"></i>
-            <span class="font-semibold text-lg">Levantar Dinheiro</span>
-            <p class="text-sm text-gray-500">Retire seus ganhos</p>
-        </button>
-        <button id="btnAdicionarTarefa" class="flex-1 bg-white hover:bg-gray-50 transition-colors shadow-md rounded-xl p-6 flex flex-col items-center">
-            <i class="fas fa-plus-circle text-4xl text-yellow-500 mb-2"></i>
-            <span class="font-semibold text-lg">Adicionar Tarefa</span>
-            <p class="text-sm text-gray-500">Crie novas tarefas</p>
-        </button>
-    </section>
-
-    <!-- Seções do Painel -->
-    <section class="bg-white shadow-md rounded-xl p-6 w-full max-w-4xl mb-6">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Tarefas Disponíveis</h3>
-        <div id="tasksList" class="space-y-4">
-            <p class="text-center loading-text">Carregando tarefas...</p>
-        </div>
-    </section>
-
-    <section class="bg-white shadow-md rounded-xl p-6 w-full max-w-4xl mb-6">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Notificações</h3>
-        <div id="notificationsList" class="space-y-2">
-            <p class="text-center text-gray-500">Carregando notificações...</p>
-        </div>
-    </section>
-
-    <section class="bg-white shadow-md rounded-xl p-6 w-full max-w-4xl mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Referências</h3>
-            <div id="referralsList" class="space-y-2">
-                <p class="text-center text-gray-500">Carregando referências...</p>
-            </div>
-        </div>
-        <div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Status</h3>
-            <div id="statusInfo" class="space-y-2">
-                <p class="text-center text-gray-500">Carregando status...</p>
-            </div>
-        </div>
-    </section>
-
-    <section class="bg-white shadow-md rounded-xl p-6 w-full max-w-4xl mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Tickets de Suporte</h3>
-            <div id="supportTicketsList" class="space-y-2">
-                <p class="text-center text-gray-500">Carregando tickets...</p>
-            </div>
-        </div>
-        <div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Transações</h3>
-            <div id="transactionsList" class="space-y-2">
-                <p class="text-center text-gray-500">Carregando transações...</p>
-            </div>
-        </div>
-    </section>
-
-    <section class="bg-white shadow-md rounded-xl p-6 w-full max-w-4xl mb-6">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Informações do Usuário</h3>
-        <div id="userInfo" class="space-y-2">
-            <p class="text-center text-gray-500">Carregando informações...</p>
-        </div>
-    </section>
-
-    <!-- Modais -->
-    <div id="modalLevantar" class="modal">
-        <div class="modal-content">
-            <span id="closeModalLevantar" class="close-btn">&times;</span>
-            <h2 class="text-2xl font-bold text-center mb-6">Levantar Dinheiro</h2>
-            <form id="formLevantar" class="flex flex-col gap-4">
-                <div>
-                    <label for="valorLevantar" class="block text-sm font-medium text-gray-700 mb-1">Valor a Levantar (MT)</label>
-                    <input type="number" id="valorLevantar" name="valorLevantar" min="1" step="0.01" required class="w-full">
-                </div>
-                <div>
-                    <label for="metodoPagamento" class="block text-sm font-medium text-gray-700 mb-1">Método de Pagamento</label>
-                    <select id="metodoPagamento" name="metodoPagamento" required class="w-full">
-                        <option value="mpesa">M-Pesa</option>
-                        <option value="emola">e-Mola</option>
-                        <option value="banco">Conta Bancária</option>
-                    </select>
-                </div>
-                <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl transition-colors">Confirmar Levantamento</button>
-            </form>
-        </div>
+<section class="py-8 px-4">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Olá, <span id="userNome">Usuário</span></h2>
+        <button id="btnSair" class="bg-gray-200 hover:bg-gray-300 text-black py-2 px-4 rounded-lg">Sair</button>
     </div>
 
-    <div id="modalAdicionarTarefa" class="modal">
-        <div class="modal-content">
-            <span id="closeModalAdicionarTarefa" class="close-btn">&times;</span>
-            <h2 class="text-2xl font-bold text-center mb-6">Adicionar Nova Tarefa</h2>
-            <form id="formAdicionarTarefa" class="flex flex-col gap-4">
-                <div>
-                    <label for="tituloTarefa" class="block text-sm font-medium text-gray-700 mb-1">Título da Tarefa</label>
-                    <input type="text" id="tituloTarefa" name="tituloTarefa" placeholder="Ex: Responder inquérito" required class="w-full">
-                </div>
-                <div>
-                    <label for="recompensaTarefa" class="block text-sm font-medium text-gray-700 mb-1">Recompensa (MT)</label>
-                    <input type="number" id="recompensaTarefa" name="recompensaTarefa" min="0.01" step="0.01" required class="w-full">
-                </div>
-                <button type="submit" id="btnSubmitAdicionarTarefa" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl transition-colors flex items-center justify-center">Adicionar Tarefa</button>
-            </form>
-        </div>
+    <div class="mb-6">
+        <p class="text-lg">Saldo atual: <span id="userSaldo">MT 0.00</span></p>
+        <button id="btnLevantar" class="bg-yellow-400 hover:bg-yellow-500 text-black py-2 px-4 rounded-lg mt-2">Levantar Saldo</button>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-        import { getFirestore, doc, collection, onSnapshot, setDoc, addDoc, query, where } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    <div class="mb-6">
+        <button id="btnAdicionarTarefa" class="bg-yellow-400 hover:bg-yellow-500 text-black py-2 px-4 rounded-lg">Adicionar Tarefa</button>
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyD70Uto5Z8gAHclBNm9peW7FKd4pR1-sZA",
-            authDomain: "clickmoz-e7e6b.firebaseapp.com",
-            projectId: "clickmoz-e7e6b",
-            storageBucket: "clickmoz-e7e6b.firebasestorage.app",
-            messagingSenderId: "57111705800",
-            appId: "1:57111705800:web:6ff95f2ce510c0c09f8dfd",
-            measurementId: "G-GBLYFL5WNM"
-        };
+    <h3 class="text-xl font-semibold mb-4">Tarefas Disponíveis</h3>
+    <div id="tasksListElement" class="flex flex-col gap-4"></div>
+</section>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+<!-- MODAL LEVANTAR -->
+<div id="modalLevantar" class="modal">
+    <div class="modal-content">
+        <span id="closeModalLevantar" class="close-btn">&times;</span>
+        <h2 class="text-2xl font-bold text-center mb-4">Levantar Saldo</h2>
+        <form id="formLevantar" class="flex flex-col gap-4">
+            <input type="number" id="valorLevantar" placeholder="Valor a levantar" required>
+            <select id="metodoPagamento" class="p-2 rounded-lg border border-gray-300">
+                <option value="M-Pesa">M-Pesa</option>
+                <option value="e-Mola">e-Mola</option>
+                <option value="Banco">Banco</option>
+            </select>
+            <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black py-2 rounded-lg">Levantar</button>
+        </form>
+    </div>
+</div>
 
-        const userNameElement = document.getElementById('userName');
-        const userBalanceElement = document.getElementById('userBalance');
-        const tasksListElement = document.getElementById('tasksList');
-        const notificationsList = document.getElementById('notificationsList');
-        const referralsList = document.getElementById('referralsList');
-        const statusInfo = document.getElementById('statusInfo');
-        const supportTicketsList = document.getElementById('supportTicketsList');
-        const transactionsList = document.getElementById('transactionsList');
-        const userInfo = document.getElementById('userInfo');
+<!-- MODAL ADICIONAR TAREFA -->
+<div id="modalAdicionarTarefa" class="modal">
+    <div class="modal-content">
+        <span id="closeModalAdicionarTarefa" class="close-btn">&times;</span>
+        <h2 class="text-2xl font-bold text-center mb-4">Adicionar Tarefa</h2>
+        <form id="formAdicionarTarefa" class="flex flex-col gap-4">
+            <input type="text" id="tituloTarefa" placeholder="Título da Tarefa" required>
+            <input type="number" id="recompensaTarefa" placeholder="Recompensa (MT)" required>
+            <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black py-2 rounded-lg">Adicionar</button>
+        </form>
+    </div>
+</div>
 
-        const btnSair = document.getElementById('btnSair');
-        const btnLevantar = document.getElementById('btnLevantar');
-        const btnAdicionarTarefa = document.getElementById('btnAdicionarTarefa');
-        const modalLevantar = document.getElementById('modalLevantar');
-        const modalAdicionarTarefa = document.getElementById('modalAdicionarTarefa');
-        const closeModalLevantar = document.getElementById('closeModalLevantar');
-        const closeModalAdicionarTarefa = document.getElementById('closeModalAdicionarTarefa');
-        const formAdicionarTarefa = document.getElementById('formAdicionarTarefa');
+<!-- Firebase Imports -->
+<script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+<script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+<script type="module" src="./firebase-config.js"></script>
 
-        function toggleModal(modal, show) { modal.classList.toggle('active', show); }
+<script type="module">
+import { firebaseConfig } from './firebase-config.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, addDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        onAuthStateChanged(auth, async (user) => {
-            document.body.style.display = 'none';
-            if (!user) { window.location.href = 'index.html'; return; }
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-            // Cria documento do usuário se não existir
-            const userDocRef = doc(db, "usuarios", user.uid);
-            try {
-                const unsubscribeUser = onSnapshot(userDocRef, async (docSnap) => {
-                    if (!docSnap.exists()) {
-                        await setDoc(userDocRef, { nome: user.displayName || "Usuário", saldo: 0 });
-                    }
-                    const data = docSnap.data();
-                    userNameElement.textContent = data.nome || "Usuário";
-                    userBalanceElement.textContent = `MT ${data.saldo.toFixed(2)}`;
-                    userInfo.innerHTML = `
-                        <p><strong>UID:</strong> ${user.uid}</p>
-                        <p><strong>Email:</strong> ${user.email}</p>
-                        <p><strong>Nome:</strong> ${data.nome}</p>
-                        <p><strong>Saldo:</strong> MT ${data.saldo.toFixed(2)}</p>
-                    `;
-                    document.body.style.display = 'flex';
-                });
-            } catch(e) { console.error("Erro ao carregar usuário:", e); document.body.style.display = 'flex'; }
+// Elementos
+const btnSair = document.getElementById('btnSair');
+const btnLevantar = document.getElementById('btnLevantar');
+const closeModalLevantar = document.getElementById('closeModalLevantar');
+const modalLevantar = document.getElementById('modalLevantar');
+const formLevantar = document.getElementById('formLevantar');
 
-            // Tarefas
-            const tasksCollectionRef = collection(db, "tarefas");
-            onSnapshot(tasksCollectionRef, (querySnapshot) => {
-                tasksListElement.innerHTML = '';
-                if (querySnapshot.empty) { tasksListElement.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa disponível no momento.</p>'; return; }
-                querySnapshot.forEach((doc) => {
-                    const task = doc.data();
-                    const taskId = doc.id;
-                    const taskElement = document.createElement('div');
-                    taskElement.className = 'bg-gray-50 rounded-lg p-4 flex items-center justify-between shadow-sm';
-                    taskElement.innerHTML = `
-                        <div>
-                            <h4 class="font-medium text-gray-900">${task.titulo}</h4>
-                            <p class="text-sm text-gray-600">Ganhe MT ${task.recompensa.toFixed(2)}</p>
-                        </div>
-                        <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg transition-colors">Fazer</button>
-                    `;
-                    tasksListElement.appendChild(taskElement);
-                    taskElement.querySelector('button').addEventListener('click', () => alert(`Você iniciou a tarefa: "${task.titulo}".`));
-                });
+const btnAdicionarTarefa = document.getElementById('btnAdicionarTarefa');
+const closeModalAdicionarTarefa = document.getElementById('closeModalAdicionarTarefa');
+const modalAdicionarTarefa = document.getElementById('modalAdicionarTarefa');
+const formAdicionarTarefa = document.getElementById('formAdicionarTarefa');
+
+const tasksListElement = document.getElementById('tasksListElement');
+const userNome = document.getElementById('userNome');
+const userSaldo = document.getElementById('userSaldo');
+
+function toggleModal(modal, show) { modal.classList.toggle('active', show); }
+
+// Verifica login
+onAuthStateChanged(auth, async (user) => {
+    if(!user) { window.location.href = 'index.html'; return; }
+    const userDocRef = doc(db, "usuarios", user.uid);
+    const userSnap = await userDocRef.get();
+    if(userSnap.exists()) {
+        userNome.textContent = userSnap.data().nome;
+        userSaldo.textContent = `MT ${userSnap.data().saldo.toFixed(2)}`;
+    }
+});
+
+// Eventos
+btnSair.addEventListener('click', () => signOut(auth).then(() => window.location.href = 'index.html'));
+
+btnLevantar.addEventListener('click', () => toggleModal(modalLevantar, true));
+closeModalLevantar.addEventListener('click', () => toggleModal(modalLevantar, false));
+
+btnAdicionarTarefa.addEventListener('click', () => toggleModal(modalAdicionarTarefa, true));
+closeModalAdicionarTarefa.addEventListener('click', () => toggleModal(modalAdicionarTarefa, false));
+
+// Levantar dinheiro
+formLevantar.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const valor = parseFloat(document.getElementById('valorLevantar').value);
+    const metodo = document.getElementById('metodoPagamento').value;
+
+    if(isNaN(valor) || valor <= 0) { alert('Valor inválido!'); return; }
+
+    const userDocRef = doc(db, "usuarios", auth.currentUser.uid);
+    const userSnap = await userDocRef.get();
+    const saldoAtual = userSnap.data().saldo || 0;
+
+    if(valor > saldoAtual) { alert('Saldo insuficiente!'); return; }
+
+    await addDoc(collection(db, "transactions"), {
+        userId: auth.currentUser.uid,
+        valor: valor,
+        metodo: metodo,
+        tipo: "levantamento",
+        data: new Date()
+    });
+
+    await setDoc(userDocRef, { saldo: saldoAtual - valor }, { merge: true });
+    userSaldo.textContent = `MT ${(saldoAtual - valor).toFixed(2)}`;
+    alert(`Levantamento de MT ${valor.toFixed(2)} via ${metodo} realizado!`);
+    toggleModal(modalLevantar, false);
+});
+
+// Adicionar tarefa
+formAdicionarTarefa.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const titulo = document.getElementById('tituloTarefa').value;
+    const recompensa = parseFloat(document.getElementById('recompensaTarefa').value);
+
+    if(!titulo || isNaN(recompensa) || recompensa <= 0) { alert('Preencha todos os campos corretamente'); return; }
+
+    await addDoc(collection(db, "tarefas"), { titulo, recompensa });
+    alert('Tarefa adicionada com sucesso!');
+    formAdicionarTarefa.reset();
+    toggleModal(modalAdicionarTarefa, false);
+});
+
+// Mostrar tarefas
+onSnapshot(collection(db, "tarefas"), async (querySnapshot) => {
+    tasksListElement.innerHTML = '';
+    const userDocRef = doc(db, "usuarios", auth.currentUser.uid);
+    const userSnap = await userDocRef.get();
+    let saldoAtual = userSnap.data().saldo || 0;
+
+    querySnapshot.forEach((docSnap) => {
+        const task = docSnap.data();
+        const taskElement = document.createElement('div');
+        taskElement.className = 'bg-gray-50 rounded-lg p-4 flex items-center justify-between shadow-sm';
+        taskElement.innerHTML = `
+            <div>
+                <h4 class="font-medium text-gray-900">${task.titulo}</h4>
+                <p class="text-sm text-gray-600">Ganhe MT ${task.recompensa.toFixed(2)}</p>
+            </div>
+            <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg transition-colors">Fazer</button>
+        `;
+        tasksListElement.appendChild(taskElement);
+
+        taskElement.querySelector('button').addEventListener('click', async () => {
+            await addDoc(collection(db, "tasks_done"), {
+                userId: auth.currentUser.uid,
+                taskId: docSnap.id,
+                titulo: task.titulo,
+                recompensa: task.recompensa,
+                data: new Date()
             });
 
-            // Notificações
-            const notificationsRef = collection(db, "notifications");
-            onSnapshot(query(notificationsRef, where("userId", "==", user.uid)), (snap) => {
-                notificationsList.innerHTML = '';
-                if (snap.empty) { notificationsList.innerHTML = '<p class="text-center text-gray-500">Nenhuma notificação.</p>'; return; }
-                snap.forEach(doc => { const n = doc.data(); notificationsList.innerHTML += `<p>${n.mensagem}</p>`; });
-            });
+            saldoAtual += task.recompensa;
+            await setDoc(userDocRef, { saldo: saldoAtual }, { merge: true });
+            userSaldo.textContent = `MT ${saldoAtual.toFixed(2)}`;
+            alert(`Tarefa "${task.titulo}" concluída! MT ${task.recompensa.toFixed(2)} adicionados ao seu saldo.`);
+        });
+    });
+});
+</script>
+</body>
+</html>
 
-            // Referências
-            const referralsRef = collection(db, "referrals");
-            onSnapshot(query(referralsRef, where("userId", "==", user.uid)), (snap) => {
-                referralsList.innerHTML = '';
-                if (snap.empty) { referralsList.innerHTML = '<p class="text-center text-gray-500">Nenhuma referência.</p>'; return; }
-                snap.forEach(doc => { const r = doc.data(); referralsList.innerHTML += `<p>${r.nome}</p>`; });
-            });
-
-            // Status
-            const statusRef = doc(db, "status", user.uid);
-            on
 
